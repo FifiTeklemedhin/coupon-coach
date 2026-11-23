@@ -19,6 +19,7 @@ tick-boxes, asks what they actually paid and their real ExtraBucks balance, and 
 ## Files
 - `index.html` - whole app: CSS, HTML, JS.
 - `README.md` - short overview.
+- `tools/` - weekly refresh: `scrape-ad.mjs`, `convert.mjs`, `check-engine.mjs` (`npm run refresh`).
 
 ## Code layout (inside index.html)
 - `//ENGINE-START` ... `//ENGINE-END`: pure logic with no DOM access. Contains `DEALS`, `GROUPS`,
@@ -52,23 +53,35 @@ Hand-checked example: Conair $14.99 + 2 Colgate Total at $4.99 minus a $2 coupon
 $24.58 at 7% tax, and earns $10 + $5 = $15.
 
 ## Weekly data refresh (the app does not update itself)
-The deals were read from CVS's weekly ad for Nov 22-28, 2026 (store: 215 Alewife Brook Pkwy,
-Cambridge MA, the store CVS defaulted to). To refresh for a new week:
-1. Open `https://www.cvs.com/weeklyad/pageview` in a browser, pick the new week in the date
-   dropdown, switch to List View, and apply the "Extrabucks" filter.
-2. Read each deal card's text. The list view truncates long lines, so some reward amounts are cut
-   off; the product name is in the "Shop now" link's aria-label.
-3. Update `DEALS` / `GROUPS` (shelf price from the ad, or `null` if not shown) and the `AD` object.
-4. Categories are assigned by hand to match CVS's site filters. Clicking CVS's category chips from
-   a script was too slow and unreliable, so do not rely on it.
-Notes: CVS's own pages were not readable by simple page fetch tools; a real browser worked. The
-user's personal coupons and ExtraBucks balance require their CVS login, which Claude must never
-type in. The user signs in themselves if account data is needed.
+Run `npm run refresh` on the user's Mac (`npm install` first). It runs three scripts:
+1. `tools/scrape-ad.mjs` (Playwright). It opens the user's installed Chrome, visible, with its own
+   profile in `tools/.chrome-profile/` (gitignored), loads `https://www.cvs.com/weeklyad/pageview`,
+   picks the week in the "This week's ad" dropdown (`--week "Nov. 29"` to override), and records the
+   ad feed the page downloads from Flipp (`.../publication/<id>/products`). That feed has full,
+   untruncated offer text, and ExtraBucks deals carry `custom_id_field_1: "Extrabucks"` (what the
+   site's Extrabucks filter uses). It also saves the List View cards (text plus the "Shop now"
+   aria-label) as a cross-check. Output: `data/raw-<start>.json`. `data/` is gitignored.
+2. `tools/convert.mjs`. It parses the offers (buy/spend, n/min, ecb, BOGO, digital mfr coupons,
+   ExtraCare app coupons, WITH CARD, "2/$12" prices), merges the ad's duplicate listings, and assigns
+   categories: a brand table (`BRANDS`) first, then keyword rules (`KW`), then the feed's own
+   category with a review note. Spend deals with at least 2 priced items in the same category and
+   threshold become `GROUPS`. Deals matching last week's (same offer and price, similar name) keep
+   their id, category, name, hint and opts. New ids look like `hc1129_1` so typed prices in
+   localStorage never carry over to a different deal. It rewrites `DEALS`/`GROUPS`/`AD` in
+   `index.html` and prints a "Please check" list (also saved to `data/review-<start>.md`).
+   Use `--dry` to preview and `--fresh` to skip the carry-over.
+3. `tools/check-engine.mjs`. It runs the engine check below on several setups.
+Then the user reviews the flags and `git diff`, and pushes. Never push without asking.
+Notes: CVS blocks simple page fetchers, so it needs a real browser. Clicking CVS's Filter/category
+chips from a script was unreliable, so the scraper doesn't use them. Keep it a personal,
+occasional, manual run, since scraping may conflict with CVS's terms of use. The user's personal
+coupons and ExtraBucks balance require their CVS login, which Claude must never type in. The script
+never signs in.
 
 ## Known gaps
-- Three ExtraBucks amounts were cut off in the ad list and filled in from a TikTok (Colgate $6,
-  Old Spice $4, Pampers wipes $5). They are flagged in the app. Verify against shelf tags.
-- Secret, Axe and Puffs deals show no ExtraBucks amount, so they are excluded from plans.
+- Group-deal products the ad lists without a price (e.g. Puffs) are left out of the group and flagged.
+- An offer that says "$5 ExtraBucks" without a condition (Pampers wipes, Nov 22-28) assumes buy 2
+  (BOGO) and is flagged in the app.
 - The ad's gift-card deal (spend $100 get $20) is excluded.
 - Group deals (Tide/Charmin etc.) pick the cheapest combination of up to 5 units that reaches the
   threshold. Coupon use is assumed to be one per product per transaction.

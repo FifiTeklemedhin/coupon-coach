@@ -1,1 +1,5 @@
 .DS_Store
+node_modules/
+tools/.chrome-profile/
+# scraped ad data and review notes stay local (personal use only)
+data/
