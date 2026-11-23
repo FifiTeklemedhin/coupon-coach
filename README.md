@@ -22,7 +22,14 @@ The deals are embedded in `index.html` in the `DEALS` and `GROUPS` arrays (insid
 `//ENGINE-START` / `//ENGINE-END` block). They were read from CVS's weekly ad for
 **Nov 22-28, 2026** (store: 215 Alewife Brook Pkwy, Cambridge MA, the store CVS defaulted to).
 
-The app does not update itself. To refresh for a new week (run it on your Mac, about once a week):
+**Automatic weekly refresh:** every Sunday at 14:00 UTC, the GitHub Action
+`.github/workflows/weekly-refresh.yml` reads the new ad on GitHub's servers, rebuilds the deals,
+runs the engine checks, and opens a pull request whose description is the "Please check" list.
+Merge it (from the GitHub app is fine) and the live site updates. To run it early, open the
+**Actions** tab, pick **Weekly deal refresh**, and click **Run workflow** (optionally with a week
+like `Nov. 29`). The cloud run uses CVS's default store for GitHub's location, so check shelf prices.
+
+To refresh by hand on your Mac instead:
 
 ```bash
 npm install          # first time only

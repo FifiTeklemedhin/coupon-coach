@@ -1,0 +1,50 @@
+# Every Sunday: read CVS's new weekly ad, rebuild the deals in index.html, run the engine checks,
+# and open a pull request with the "Please check" list. Merging the PR updates the live site.
+# Raw scraped data is never committed (CVS's ad copy stays out of this public repo).
+name: Weekly deal refresh
+on:
+  schedule:
+    - cron: '0 14 * * 0'   # Sundays 14:00 UTC (9-10am Eastern)
+  workflow_dispatch:
+    inputs:
+      week:
+        description: 'Part of the week label in CVS''s dropdown, e.g. "Nov. 29" (blank = current week)'
+        required: false
+permissions:
+  contents: write
+  pull-requests: write
+concurrency: weekly-refresh
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Read the weekly ad (real Chrome in a virtual display)
+        run: xvfb-run -a node tools/scrape-ad.mjs ${WEEK:+--week "$WEEK"}
+        env: { WEEK: '${{ inputs.week }}' }
+        timeout-minutes: 10
+      - name: Rebuild deals
+        run: node tools/convert.mjs
+      - name: Engine checks
+        run: node tools/check-engine.mjs
+      - name: Open a pull request
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          if git diff --quiet index.html; then echo "No changes to the deals."; exit 0; fi
+          START=$(node -e "console.log(JSON.parse(require('fs').readFileSync(require('fs').readdirSync('data').filter(f=>f.startsWith('raw-')).sort().map(f=>'data/'+f).pop())).week.start)")
+          BR="refresh/$START"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BR"
+          git add index.html
+          git commit -m "Refresh deals for the CVS ad week of $START"
+          git push -f origin "$BR"
+          { echo "Automated weekly refresh. Review the list below, then merge to update the live app."; echo;
+            echo "Note: read on GitHub's servers, so CVS picks its default store for that location. The ad is mostly national, but check shelf prices."; echo;
+            cat data/review-$START.md; } > body.md
+          if gh pr view "$BR" >/dev/null 2>&1; then gh pr edit "$BR" --body-file body.md;
+          else gh pr create --base main --head "$BR" --title "Deals for the CVS ad week of $START" --body-file body.md; fi

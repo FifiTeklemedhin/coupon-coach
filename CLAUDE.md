@@ -20,6 +20,7 @@ tick-boxes, asks what they actually paid and their real ExtraBucks balance, and 
 - `index.html` - whole app: CSS, HTML, JS.
 - `README.md` - short overview.
 - `tools/` - weekly refresh: `scrape-ad.mjs`, `convert.mjs`, `check-engine.mjs` (`npm run refresh`).
+- `.github/workflows/weekly-refresh.yml` - runs the refresh on GitHub every Sunday and opens a PR.
 
 ## Code layout (inside index.html)
 - `//ENGINE-START` ... `//ENGINE-END`: pure logic with no DOM access. Contains `DEALS`, `GROUPS`,
@@ -52,8 +53,16 @@ Check: step N's `eBefore` equals step N-1's `eAfter`, `apply <= eBefore`, and to
 Hand-checked example: Conair $14.99 + 2 Colgate Total at $4.99 minus a $2 coupon = $22.97, which is
 $24.58 at 7% tax, and earns $10 + $5 = $15.
 
-## Weekly data refresh (the app does not update itself)
-Run `npm run refresh` on the user's Mac (`npm install` first). It runs three scripts:
+## Weekly data refresh
+Automatic: `.github/workflows/weekly-refresh.yml` runs Sundays 14:00 UTC (and on manual dispatch with an
+optional `week` input). It runs the same three scripts under `xvfb-run` on ubuntu-latest, then pushes
+branch `refresh/<week start>` and opens a PR whose body is the review list. Raw data is never
+committed or uploaded. In the cloud CVS picks its default store for the runner's location, so
+`AD.store` falls back to a generic label. A probe run on 2026-11-23 confirmed CVS serves the ad to
+GitHub's runners (128 ExtraBucks items). Do not add bot-detection evasion or call Flipp directly with
+CVS's embedded access token; if CVS starts blocking the runner, fall back to the local run.
+
+Manual: run `npm run refresh` on the user's Mac (`npm install` first). It runs three scripts:
 1. `tools/scrape-ad.mjs` (Playwright). It opens the user's installed Chrome, visible, with its own
    profile in `tools/.chrome-profile/` (gitignored), loads `https://www.cvs.com/weeklyad/pageview`,
    picks the week in the "This week's ad" dropdown (`--week "Nov. 29"` to override), and records the

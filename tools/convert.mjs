@@ -299,8 +299,8 @@ const a = fmt(raw.week.start), b = fmt(raw.week.end);
 const label = a.m === b.m ? `${a.m} ${a.d}–${b.d}, ${b.y}` : `${a.m} ${a.d}–${b.m} ${b.d}, ${b.y}`;
 const title = (s) => s.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase()).replace(/\bParkway\b/, 'Pkwy').replace(/\b(Ma|Ny|Ca|Nj|Ct|Ri|Nh|Vt|Me)$/, (x) => x.toUpperCase());
 const oldAd = html.match(/var AD = \{[^}]*\};/)[0];
-const oldStore = oldAd.match(/store:'([^']*)'/)?.[1];
-const store = raw.store ? `${title(raw.store.split(', ')[0])}, ${title(raw.store.split(', ')[1] || '')} ${raw.store.split(', ')[2] || ''} (CVS default)`.replace(/\s+/g, ' ') : oldStore;
+const store = raw.store ? `${title(raw.store.split(', ')[0])}, ${title(raw.store.split(', ')[1] || '')} ${raw.store.split(', ')[2] || ''} (CVS default)`.replace(/\s+/g, ' ')
+  : 'the store CVS picked by default (location not recorded; check shelf prices)'; // e.g. a cloud run
 const adSrc = `var AD = { start:'${raw.week.start}', end:'${raw.week.end}', label:'${label}', store:${q(store)} };`;
 
 const s0 = html.indexOf('  var DEALS = ['), s1 = html.indexOf('  var CATS =');
