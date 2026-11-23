@@ -111,6 +111,18 @@ input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);b
 .dealrow{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}
 .dealrow .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .dealrow input{max-width:130px;font-family:var(--font-mono);padding:6px 8px;font-size:15px}
+.plink{font-size:13px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;min-height:32px}
+.plink:hover{text-decoration:underline}
+details.elig{font-size:13px}
+details.elig summary{cursor:pointer;color:var(--accent);font-weight:600;min-height:32px;display:flex;align-items:center;list-style:none}
+details.elig summary::-webkit-details-marker{display:none}
+details.elig summary::before{content:'\25B8';margin-right:6px;transition:transform .15s}
+details.elig[open] summary::before{transform:rotate(90deg)}
+details.elig ul{margin:0 0 4px;padding-left:20px;display:flex;flex-direction:column}
+.item{display:flex;flex-direction:column;gap:0}
+.task-wrap{border-bottom:1px solid var(--line)}
+.task-wrap .task{border-bottom:0}
+.task-links{padding:0 0 10px 34px;margin-top:-6px}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -202,113 +214,113 @@ input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);b
   //ENGINE-START
   var DEALS = [
     // type 'buy': buy n get ecb. type 'spend': spend min get ecb. price = unit shelf price from the ad (null = not shown).
-    {id:'hc1',cat:'Hair Care',name:'Conair curling iron (0.75 or 1 in.) or turbo/mid-size dryer',price:14.99,type:'buy',n:1,ecb:10,card:1},
-    {id:'hc2',cat:'Hair Care',name:'Conair styling tools (mini waver, smoothing brush, flat iron, curling iron, 1875W dryer)',price:19.99,type:'buy',n:1,ecb:10,card:1},
-    {id:'hc3',cat:'Hair Care',name:'Conair InfinitiPRO styling tools (1.25 in. clip, flat iron, dryer, waver)',price:29.99,type:'buy',n:1,ecb:10},
-    {id:'hc4',cat:'Hair Care',name:'Conair InfinitiPRO all-in-one dryer brush and similar',price:39.99,type:'buy',n:1,ecb:15},
-    {id:'hc5',cat:'Hair Care',name:'Head & Shoulders shampoo 10.6–12.5 oz',price:6.99,type:'buy',n:2,ecb:4,card:1},
-    {id:'hc6',cat:'Hair Care',name:"L'Oreal Elvive shampoo or conditioner 12.6 oz",price:5.49,type:'buy',n:2,ecb:3,card:1},
-    {id:'hc7',cat:'Hair Care',name:'Garnier Fructis shampoo/conditioner 11.3–13 oz',price:4.49,type:'buy',n:2,ecb:3,card:1},
-    {id:'hc8',cat:'Hair Care',name:"L'Oreal hair color",price:null,type:'buy',n:2,ecb:5,card:1},
-    {id:'hc9',cat:'Hair Care',name:'Garnier Nutrisse or Olia hair color',price:null,type:'buy',n:2,ecb:4,card:1},
-    {id:'hc10',cat:'Hair Care',name:"Clairol Nice'n Easy / Colorstrong hair color",price:null,type:'buy',n:1,ecb:4,card:1,mfr:{v:2}},
-    {id:'hc11',cat:'Hair Care',name:"L'Oreal Ever hair care",price:null,type:'buy',n:2,ecb:5,card:1},
-    {id:'hc12',cat:'Hair Care',name:'Pantene hair care',price:null,type:'spend',min:20,ecb:5,mfr:{v:5,onQty:2}},
-    {id:'hc13',cat:'Hair Care',name:'Kaleidoscope, Pardon My Fro or Watch & Sea hair care',price:null,type:'spend',min:20,ecb:5,card:1},
+    {id:'hc1',cat:'Hair Care',name:'Conair curling iron (0.75 or 1 in.) or turbo/mid-size dryer',price:14.99,type:'buy',n:1,ecb:10,card:1,opts:["Conair curling iron 3/4 inch", "Conair curling iron 1 inch", "Conair turbo hair dryer", "Conair mid-size hair dryer"]},
+    {id:'hc2',cat:'Hair Care',name:'Conair styling tools (mini waver, smoothing brush, flat iron, curling iron, 1875W dryer)',price:19.99,type:'buy',n:1,ecb:10,card:1,opts:["Conair mini waver", "Conair smoothing brush", "Conair flat iron", "Conair curling iron", "Conair 1875 watt hair dryer"]},
+    {id:'hc3',cat:'Hair Care',name:'Conair InfinitiPRO styling tools (1.25 in. clip, flat iron, dryer, waver)',price:29.99,type:'buy',n:1,ecb:10,opts:["Conair InfinitiPRO 1.25 inch curling iron", "Conair InfinitiPRO flat iron", "Conair InfinitiPRO hair dryer", "Conair InfinitiPRO waver"]},
+    {id:'hc4',cat:'Hair Care',name:'Conair InfinitiPRO all-in-one dryer brush and similar',price:39.99,type:'buy',n:1,ecb:15,opts:["Conair InfinitiPRO all-in-one dryer brush"]},
+    {id:'hc5',cat:'Hair Care',name:'Head & Shoulders shampoo 10.6–12.5 oz',price:6.99,type:'buy',n:2,ecb:4,card:1,opts:["Head & Shoulders shampoo 12.5 oz", "Head & Shoulders shampoo 10.6 oz"]},
+    {id:'hc6',cat:'Hair Care',name:"L'Oreal Elvive shampoo or conditioner 12.6 oz",price:5.49,type:'buy',n:2,ecb:3,card:1,opts:["L'Oreal Elvive shampoo 12.6 oz", "L'Oreal Elvive conditioner 12.6 oz"]},
+    {id:'hc7',cat:'Hair Care',name:'Garnier Fructis shampoo/conditioner 11.3–13 oz',price:4.49,type:'buy',n:2,ecb:3,card:1,opts:["Garnier Fructis shampoo", "Garnier Fructis conditioner"]},
+    {id:'hc8',cat:'Hair Care',name:"L'Oreal hair color",price:null,type:'buy',n:2,ecb:5,card:1,opts:["L'Oreal Excellence hair color", "L'Oreal Feria hair color", "L'Oreal Superior Preference hair color"]},
+    {id:'hc9',cat:'Hair Care',name:'Garnier Nutrisse or Olia hair color',price:null,type:'buy',n:2,ecb:4,card:1,opts:["Garnier Nutrisse hair color", "Garnier Olia hair color"]},
+    {id:'hc10',cat:'Hair Care',name:"Clairol Nice'n Easy / Colorstrong hair color",price:null,type:'buy',n:1,ecb:4,card:1,mfr:{v:2},opts:["Clairol Nice'n Easy hair color", "Clairol Colorstrong hair color"]},
+    {id:'hc11',cat:'Hair Care',name:"L'Oreal Ever hair care",price:null,type:'buy',n:2,ecb:5,card:1,opts:["L'Oreal EverPure shampoo", "L'Oreal EverCurl", "L'Oreal EverCreme"]},
+    {id:'hc12',cat:'Hair Care',name:'Pantene hair care',price:null,type:'spend',min:20,ecb:5,mfr:{v:5,onQty:2},opts:["Pantene shampoo", "Pantene conditioner", "Pantene styling"]},
+    {id:'hc13',cat:'Hair Care',name:'Kaleidoscope, Pardon My Fro or Watch & Sea hair care',price:null,type:'spend',min:20,ecb:5,card:1,opts:["Kaleidoscope hair care", "Pardon My Fro hair care", "Watch & Sea hair care"]},
 
-    {id:'oc1',cat:'Oral Care',name:'Colgate Optic White / Total toothpaste (2 for $12)',price:6.00,type:'buy',n:2,ecb:6,mfr:{v:5,onQty:2},flag:'The ExtraBucks amount is cut off in the ad list. $6 matches the TikTok, so confirm on the shelf tag.'},
-    {id:'oc2',cat:'Oral Care',name:'Colgate Total 5.1 oz toothpaste or Total mouthwash',price:4.99,type:'buy',n:2,ecb:5,card:1,mfr:{v:2}},
-    {id:'oc5',cat:'Oral Care',name:'Crest 3D White / Pro-Health toothpaste (2 for $10)',price:5.00,type:'buy',n:2,ecb:4,card:1},
-    {id:'oc3',cat:'Oral Care',name:'Colgate Optic White 3 oz, Total value pack or 2-ct manual brush',price:null,type:'buy',n:2,ecb:8,card:1},
-    {id:'oc4',cat:'Oral Care',name:'Colgate/hello kids oral care',price:null,type:'spend',min:12,ecb:5,mfr:{v:3}},
-    {id:'oc6',cat:'Oral Care',name:'Crest mouthwash (Brilliance, Clinical, Whitening, Gum)',price:null,type:'buy',n:2,ecb:5,card:1},
-    {id:'oc7',cat:'Oral Care',name:'Crest 2-pk toothpaste, Oral-B brushes, floss or picks',price:null,type:'spend',min:20,ecb:5,card:1},
-    {id:'oc8',cat:'Oral Care',name:'Sensodyne, Pronamel or Parodontax',price:null,type:'buy',n:2,ecb:10,card:1},
-    {id:'oc9',cat:'Oral Care',name:'TheraBreath toothpaste (BOGO 50% off)',price:null,type:'buy',n:2,ecb:2,card:1,bogo:1},
-    {id:'oc10',cat:'Oral Care',name:'Guru Nanda oil pulling / whitening',price:null,type:'buy',n:2,ecb:5,card:1},
-    {id:'oc11',cat:'Oral Care',name:'Biotène',price:null,type:'buy',n:2,ecb:4,card:1},
-    {id:'oc12',cat:'Oral Care',name:'Polident or Poligrip',price:null,type:'buy',n:2,ecb:5,card:1},
+    {id:'oc1',cat:'Oral Care',name:'Colgate Optic White / Total toothpaste (2 for $12)',price:6.00,type:'buy',n:2,ecb:6,mfr:{v:5,onQty:2},flag:'The ExtraBucks amount is cut off in the ad list. $6 matches the TikTok, so confirm on the shelf tag.',opts:["Colgate Optic White toothpaste", "Colgate Total toothpaste"]},
+    {id:'oc2',cat:'Oral Care',name:'Colgate Total 5.1 oz toothpaste or Total mouthwash',price:4.99,type:'buy',n:2,ecb:5,card:1,mfr:{v:2},opts:["Colgate Total toothpaste 5.1 oz", "Colgate Total mouthwash"]},
+    {id:'oc5',cat:'Oral Care',name:'Crest 3D White / Pro-Health toothpaste (2 for $10)',price:5.00,type:'buy',n:2,ecb:4,card:1,opts:["Crest 3D White toothpaste", "Crest Pro-Health toothpaste"]},
+    {id:'oc3',cat:'Oral Care',name:'Colgate Optic White 3 oz, Total value pack or 2-ct manual brush',price:null,type:'buy',n:2,ecb:8,card:1,opts:["Colgate Optic White toothpaste 3 oz", "Colgate Total value pack", "Colgate manual toothbrush 2 count"]},
+    {id:'oc4',cat:'Oral Care',name:'Colgate/hello kids oral care',price:null,type:'spend',min:12,ecb:5,mfr:{v:3},opts:["Colgate kids toothpaste", "Colgate kids toothbrush", "hello kids toothpaste"]},
+    {id:'oc6',cat:'Oral Care',name:'Crest mouthwash (Brilliance, Clinical, Whitening, Gum)',price:null,type:'buy',n:2,ecb:5,card:1,opts:["Crest 3D White Brilliance mouthwash", "Crest Pro-Health Clinical mouthwash", "Crest whitening mouthwash", "Crest Gum mouthwash"]},
+    {id:'oc7',cat:'Oral Care',name:'Crest 2-pk toothpaste, Oral-B brushes, floss or picks',price:null,type:'spend',min:20,ecb:5,card:1,opts:["Crest toothpaste 2 pack", "Oral-B toothbrush", "Oral-B floss", "Oral-B floss picks"]},
+    {id:'oc8',cat:'Oral Care',name:'Sensodyne, Pronamel or Parodontax',price:null,type:'buy',n:2,ecb:10,card:1,opts:["Sensodyne toothpaste", "Pronamel toothpaste", "Parodontax toothpaste"]},
+    {id:'oc9',cat:'Oral Care',name:'TheraBreath toothpaste (BOGO 50% off)',price:null,type:'buy',n:2,ecb:2,card:1,bogo:1,opts:["TheraBreath toothpaste"]},
+    {id:'oc10',cat:'Oral Care',name:'Guru Nanda oil pulling / whitening',price:null,type:'buy',n:2,ecb:5,card:1,opts:["Guru Nanda oil pulling", "Guru Nanda whitening"]},
+    {id:'oc11',cat:'Oral Care',name:'Biotène',price:null,type:'buy',n:2,ecb:4,card:1,opts:["Biotene mouthwash", "Biotene dry mouth"]},
+    {id:'oc12',cat:'Oral Care',name:'Polident or Poligrip',price:null,type:'buy',n:2,ecb:5,card:1,opts:["Polident", "Poligrip"]},
 
-    {id:'sd1',cat:'Shave & Deodorant',name:'Old Spice deodorant (BOGO 50% off)',price:null,type:'buy',n:2,ecb:4,bogo:1,mfr:{v:7,onQty:2},hint:'The TikTok showed about $9.29 each.',flag:'The ExtraBucks amount is cut off in the ad list. $4 matches the TikTok, so confirm on the shelf tag.'},
-    {id:'sd3',cat:'Shave & Deodorant',name:'Dove deodorant (BOGO 50% off)',price:null,type:'buy',n:2,ecb:3,bogo:1},
-    {id:'sd5',cat:'Shave & Deodorant',name:'Gillette/Venus razors or cartridges',price:null,type:'buy',n:2,ecb:8,card:1},
-    {id:'sd6',cat:'Shave & Deodorant',name:'Gillette/Venus disposables or Satin Care shave foam',price:null,type:'buy',n:2,ecb:3,card:1},
-    {id:'sd7',cat:'Shave & Deodorant',name:'Schick/Skintimate disposable razors',price:null,type:'buy',n:2,ecb:4,card:1},
-    {id:'sd8',cat:'Shave & Deodorant',name:'Philips Norelco shave products',price:null,type:'spend',min:25,ecb:10,card:1,hint:'The TikTok used nose trimmers at about $12.99 each.'},
-    {id:'sd9',cat:'Shave & Deodorant',name:'Dove MEN+Care deodorant, body wash or hair care',price:null,type:'buy',n:2,ecb:3,card:1},
-    {id:'sd2',cat:'Shave & Deodorant',name:'Secret Clinical or whole body deodorant (BOGO 50% off)',price:null,type:'buy',n:2,ecb:null,bogo:1,mfr:{v:10,onQty:2}},
-    {id:'sd4',cat:'Shave & Deodorant',name:'AXE deodorant or body spray (BOGO 50% off)',price:null,type:'buy',n:2,ecb:null,bogo:1,mfr:{v:5,onQty:2}},
+    {id:'sd1',cat:'Shave & Deodorant',name:'Old Spice deodorant (BOGO 50% off)',price:null,type:'buy',n:2,ecb:4,bogo:1,mfr:{v:7,onQty:2},hint:'The TikTok showed about $9.29 each.',flag:'The ExtraBucks amount is cut off in the ad list. $4 matches the TikTok, so confirm on the shelf tag.',opts:["Old Spice deodorant"]},
+    {id:'sd3',cat:'Shave & Deodorant',name:'Dove deodorant (BOGO 50% off)',price:null,type:'buy',n:2,ecb:3,bogo:1,opts:["Dove deodorant"]},
+    {id:'sd5',cat:'Shave & Deodorant',name:'Gillette/Venus razors or cartridges',price:null,type:'buy',n:2,ecb:8,card:1,opts:["Gillette razor", "Gillette cartridges", "Venus razor", "Venus cartridges"]},
+    {id:'sd6',cat:'Shave & Deodorant',name:'Gillette/Venus disposables or Satin Care shave foam',price:null,type:'buy',n:2,ecb:3,card:1,opts:["Gillette disposable razors", "Venus disposable razors", "Satin Care shave gel"]},
+    {id:'sd7',cat:'Shave & Deodorant',name:'Schick/Skintimate disposable razors',price:null,type:'buy',n:2,ecb:4,card:1,opts:["Schick disposable razors", "Skintimate disposable razors"]},
+    {id:'sd8',cat:'Shave & Deodorant',name:'Philips Norelco shave products',price:null,type:'spend',min:25,ecb:10,card:1,hint:'The TikTok used nose trimmers at about $12.99 each.',opts:["Philips Norelco nose trimmer", "Philips Norelco multigroom", "Philips Norelco shaver"]},
+    {id:'sd9',cat:'Shave & Deodorant',name:'Dove MEN+Care deodorant, body wash or hair care',price:null,type:'buy',n:2,ecb:3,card:1,opts:["Dove Men+Care deodorant", "Dove Men+Care body wash", "Dove Men+Care shampoo"]},
+    {id:'sd2',cat:'Shave & Deodorant',name:'Secret Clinical or whole body deodorant (BOGO 50% off)',price:null,type:'buy',n:2,ecb:null,bogo:1,mfr:{v:10,onQty:2},opts:["Secret Clinical deodorant", "Secret whole body deodorant"]},
+    {id:'sd4',cat:'Shave & Deodorant',name:'AXE deodorant or body spray (BOGO 50% off)',price:null,type:'buy',n:2,ecb:null,bogo:1,mfr:{v:5,onQty:2},opts:["AXE deodorant", "AXE body spray"]},
 
-    {id:'b1',cat:'Beauty',name:'L.A. Colors cosmetic gift set',price:5.99,type:'buy',n:1,ecb:3,hint:'Listed as regular retail price.'},
-    {id:'b2',cat:'Beauty',name:'L.A. Colors / X+Y=Beauty / Lip Smackers gift set',price:9.99,type:'buy',n:1,ecb:5,card:1,hint:'Listed as regular retail price.'},
-    {id:'b3',cat:'Beauty',name:'Holiday cosmetic gift set',price:12.99,type:'buy',n:1,ecb:7,card:1,hint:'Listed as regular retail price.'},
-    {id:'b5',cat:'Beauty',name:'Maybelline cosmetics',price:6.00,type:'buy',n:2,ecb:6,store:{v:3,note:'$3 off ExtraCare coupon in the CVS app'},flag:'Check the $3 coupon terms in the app. The plan applies it once.'},
-    {id:'b4',cat:'Beauty',name:"L'Oreal cosmetics",price:null,type:'buy',n:2,ecb:5,card:1},
-    {id:'b6',cat:'Beauty',name:'Revlon cosmetics or beauty tools',price:null,type:'buy',n:2,ecb:5,store:{v:4,note:'$4 off ExtraCare coupon in the CVS app'}},
-    {id:'b7',cat:'Beauty',name:'CoverGirl cosmetics',price:null,type:'spend',min:15,ecb:5,card:1},
-    {id:'b8',cat:'Beauty',name:'Neutrogena cosmetics',price:null,type:'spend',min:12,ecb:7,card:1},
-    {id:'b13',cat:'Beauty',name:'Neutrogena makeup remover towelettes',price:null,type:'buy',n:2,ecb:7,card:1},
+    {id:'b1',cat:'Beauty',name:'L.A. Colors cosmetic gift set',price:5.99,type:'buy',n:1,ecb:3,hint:'Listed as regular retail price.',opts:["L.A. Colors gift set"]},
+    {id:'b2',cat:'Beauty',name:'L.A. Colors / X+Y=Beauty / Lip Smackers gift set',price:9.99,type:'buy',n:1,ecb:5,card:1,hint:'Listed as regular retail price.',opts:["L.A. Colors gift set", "X+Y=Beauty gift set", "Lip Smackers gift set"]},
+    {id:'b3',cat:'Beauty',name:'Holiday cosmetic gift set',price:12.99,type:'buy',n:1,ecb:7,card:1,hint:'Listed as regular retail price.',opts:["holiday cosmetic gift set"]},
+    {id:'b5',cat:'Beauty',name:'Maybelline cosmetics',price:6.00,type:'buy',n:2,ecb:6,store:{v:3,note:'$3 off ExtraCare coupon in the CVS app'},flag:'Check the $3 coupon terms in the app. The plan applies it once.',opts:["Maybelline mascara", "Maybelline foundation", "Maybelline lipstick"]},
+    {id:'b4',cat:'Beauty',name:"L'Oreal cosmetics",price:null,type:'buy',n:2,ecb:5,card:1,opts:["L'Oreal mascara", "L'Oreal foundation", "L'Oreal lipstick"]},
+    {id:'b6',cat:'Beauty',name:'Revlon cosmetics or beauty tools',price:null,type:'buy',n:2,ecb:5,store:{v:4,note:'$4 off ExtraCare coupon in the CVS app'},opts:["Revlon lipstick", "Revlon foundation", "Revlon tweezers", "Revlon hair dryer brush"]},
+    {id:'b7',cat:'Beauty',name:'CoverGirl cosmetics',price:null,type:'spend',min:15,ecb:5,card:1,opts:["CoverGirl mascara", "CoverGirl foundation", "CoverGirl lipstick"]},
+    {id:'b8',cat:'Beauty',name:'Neutrogena cosmetics',price:null,type:'spend',min:12,ecb:7,card:1,opts:["Neutrogena foundation", "Neutrogena concealer"]},
+    {id:'b13',cat:'Beauty',name:'Neutrogena makeup remover towelettes',price:null,type:'buy',n:2,ecb:7,card:1,opts:["Neutrogena makeup remover wipes"]},
 
-    {id:'m1',cat:'Makeup & Nails',name:'NYX Professional or holiday makeup',price:null,type:'spend',min:15,ecb:5},
-    {id:'m2',cat:'Makeup & Nails',name:'Kiss artificial nails',price:null,type:'buy',n:2,ecb:5,card:1},
-    {id:'m3',cat:'Makeup & Nails',name:'Sally Hansen cosmetics or beauty tools',price:null,type:'spend',min:10,ecb:4,card:1},
-    {id:'m4',cat:'Makeup & Nails',name:'Ardell false eyelashes',price:null,type:'buy',n:2,ecb:5,card:1},
+    {id:'m1',cat:'Makeup & Nails',name:'NYX Professional or holiday makeup',price:null,type:'spend',min:15,ecb:5,opts:["NYX Professional makeup", "NYX holiday gift set"]},
+    {id:'m2',cat:'Makeup & Nails',name:'Kiss artificial nails',price:null,type:'buy',n:2,ecb:5,card:1,opts:["Kiss press-on nails", "Kiss imPRESS nails"]},
+    {id:'m3',cat:'Makeup & Nails',name:'Sally Hansen cosmetics or beauty tools',price:null,type:'spend',min:10,ecb:4,card:1,opts:["Sally Hansen nail polish", "Sally Hansen nail tools"]},
+    {id:'m4',cat:'Makeup & Nails',name:'Ardell false eyelashes',price:null,type:'buy',n:2,ecb:5,card:1,opts:["Ardell false lashes"]},
 
-    {id:'pc1',cat:'Personal Care',name:'Olay Regenerist serum, night cream or lotion',price:null,type:'buy',n:2,ecb:8,card:1},
-    {id:'pc2',cat:'Personal Care',name:'Olay Regenerist Eyes, Whips or Ingredients',price:null,type:'buy',n:2,ecb:8,card:1},
-    {id:'pc3',cat:'Personal Care',name:'Olay Regenerist Max or Super Serum',price:null,type:'buy',n:2,ecb:8,mfr:{v:15,onQty:2}},
-    {id:'pc4',cat:'Personal Care',name:"L'Oreal facial care",price:null,type:'spend',min:30,ecb:10,store:{v:5,note:'$5 off ExtraCare coupon in the CVS app'}},
-    {id:'pc5',cat:'Personal Care',name:'Garnier facial care',price:null,type:'spend',min:12,ecb:3,card:1},
-    {id:'pc6',cat:'Personal Care',name:'Nivea hand & body lotion or facial care',price:null,type:'spend',min:20,ecb:5,card:1},
-    {id:'pc7',cat:'Personal Care',name:'STARFACE acne',price:null,type:'buy',n:1,ecb:3,card:1},
-    {id:'pc8',cat:'Personal Care',name:'Clean & Clear acne care',price:null,type:'spend',min:8,ecb:3,card:1},
-    {id:'pc9',cat:'Personal Care',name:'Olay body wash 20 oz or pump 35 oz',price:10.99,type:'buy',n:2,ecb:5,card:1},
-    {id:'pc10',cat:'Personal Care',name:'Nivea body wash',price:null,type:'buy',n:2,ecb:5,card:1},
-    {id:'pc11',cat:'Personal Care',name:'Softsoap hand soap, Irish Spring 3-pk or Velvet Silk foaming soap',price:3.29,type:'buy',n:2,ecb:3,card:1},
-    {id:'pc12',cat:'Personal Care',name:'Dove or MEN+Care bar soap 6-pk / body wash pump',price:null,type:'buy',n:2,ecb:3,card:1,mfr:{v:3}},
+    {id:'pc1',cat:'Personal Care',name:'Olay Regenerist serum, night cream or lotion',price:null,type:'buy',n:2,ecb:8,card:1,opts:["Olay Regenerist serum", "Olay Regenerist night cream", "Olay Regenerist lotion"]},
+    {id:'pc2',cat:'Personal Care',name:'Olay Regenerist Eyes, Whips or Ingredients',price:null,type:'buy',n:2,ecb:8,card:1,opts:["Olay Regenerist eye cream", "Olay Regenerist Whips", "Olay Ingredients serum"]},
+    {id:'pc3',cat:'Personal Care',name:'Olay Regenerist Max or Super Serum',price:null,type:'buy',n:2,ecb:8,mfr:{v:15,onQty:2},opts:["Olay Regenerist Max", "Olay Super Serum"]},
+    {id:'pc4',cat:'Personal Care',name:"L'Oreal facial care",price:null,type:'spend',min:30,ecb:10,store:{v:5,note:'$5 off ExtraCare coupon in the CVS app'},opts:["L'Oreal Revitalift", "L'Oreal facial moisturizer", "L'Oreal serum"]},
+    {id:'pc5',cat:'Personal Care',name:'Garnier facial care',price:null,type:'spend',min:12,ecb:3,card:1,opts:["Garnier Micellar water", "Garnier facial moisturizer", "Garnier Vitamin C serum"]},
+    {id:'pc6',cat:'Personal Care',name:'Nivea hand & body lotion or facial care',price:null,type:'spend',min:20,ecb:5,card:1,opts:["Nivea body lotion", "Nivea hand cream", "Nivea face cream"]},
+    {id:'pc7',cat:'Personal Care',name:'STARFACE acne',price:null,type:'buy',n:1,ecb:3,card:1,opts:["Starface Hydro-Stars pimple patches"]},
+    {id:'pc8',cat:'Personal Care',name:'Clean & Clear acne care',price:null,type:'spend',min:8,ecb:3,card:1,opts:["Clean & Clear face wash", "Clean & Clear acne"]},
+    {id:'pc9',cat:'Personal Care',name:'Olay body wash 20 oz or pump 35 oz',price:10.99,type:'buy',n:2,ecb:5,card:1,opts:["Olay body wash 20 oz", "Olay body wash pump 35 oz"]},
+    {id:'pc10',cat:'Personal Care',name:'Nivea body wash',price:null,type:'buy',n:2,ecb:5,card:1,opts:["Nivea body wash"]},
+    {id:'pc11',cat:'Personal Care',name:'Softsoap hand soap, Irish Spring 3-pk or Velvet Silk foaming soap',price:3.29,type:'buy',n:2,ecb:3,card:1,opts:["Softsoap hand soap", "Irish Spring bar soap 3 pack", "Softsoap Velvet Silk foaming hand soap"]},
+    {id:'pc12',cat:'Personal Care',name:'Dove or MEN+Care bar soap 6-pk / body wash pump',price:null,type:'buy',n:2,ecb:3,card:1,mfr:{v:3},opts:["Dove bar soap 6 pack", "Dove Men+Care bar soap 6 pack", "Dove body wash pump"]},
 
-    {id:'hm1',cat:'Health & Medicine',name:'Colace, RectiCare, Senokot or Mylanta digestive health',price:null,type:'spend',min:20,ecb:5,card:1},
-    {id:'hm2',cat:'Health & Medicine',name:'Adult Tylenol or Motrin, 75 ct. or larger',price:null,type:'buy',n:2,ecb:6,card:1,mfr:{v:2}},
-    {id:'hm3',cat:'Health & Medicine',name:'Biofreeze (not the 1-ct. patch)',price:null,type:'buy',n:2,ecb:15,card:1},
-    {id:'hm4',cat:'Health & Medicine',name:'KT Tape',price:null,type:'buy',n:2,ecb:8,card:1},
-    {id:'hm5',cat:'Health & Medicine',name:'OneTouch meters, lancets or test strips',price:null,type:'spend',min:30,ecb:10,card:1},
+    {id:'hm1',cat:'Health & Medicine',name:'Colace, RectiCare, Senokot or Mylanta digestive health',price:null,type:'spend',min:20,ecb:5,card:1,opts:["Colace stool softener", "RectiCare", "Senokot", "Mylanta"]},
+    {id:'hm2',cat:'Health & Medicine',name:'Adult Tylenol or Motrin, 75 ct. or larger',price:null,type:'buy',n:2,ecb:6,card:1,mfr:{v:2},opts:["Tylenol Extra Strength 100 ct", "Motrin IB 100 ct"]},
+    {id:'hm3',cat:'Health & Medicine',name:'Biofreeze (not the 1-ct. patch)',price:null,type:'buy',n:2,ecb:15,card:1,opts:["Biofreeze gel", "Biofreeze roll-on", "Biofreeze spray"]},
+    {id:'hm4',cat:'Health & Medicine',name:'KT Tape',price:null,type:'buy',n:2,ecb:8,card:1,opts:["KT Tape"]},
+    {id:'hm5',cat:'Health & Medicine',name:'OneTouch meters, lancets or test strips',price:null,type:'spend',min:30,ecb:10,card:1,opts:["OneTouch Verio test strips", "OneTouch lancets", "OneTouch meter"]},
 
-    {id:'vn1',cat:'Vitamins & Nutrition',name:'Natrol vitamins or sleep supplements (BOGO 50% off)',price:null,type:'buy',n:2,ecb:5,bogo:1},
-    {id:'vn2',cat:'Vitamins & Nutrition',name:'Irwin Naturals',price:null,type:'spend',min:20,ecb:5,card:1},
-    {id:'vn3',cat:'Vitamins & Nutrition',name:'Ensure shakes or powder (not single bottles)',price:null,type:'buy',n:2,ecb:7,card:1},
+    {id:'vn1',cat:'Vitamins & Nutrition',name:'Natrol vitamins or sleep supplements (BOGO 50% off)',price:null,type:'buy',n:2,ecb:5,bogo:1,opts:["Natrol melatonin", "Natrol vitamins"]},
+    {id:'vn2',cat:'Vitamins & Nutrition',name:'Irwin Naturals',price:null,type:'spend',min:20,ecb:5,card:1,opts:["Irwin Naturals"]},
+    {id:'vn3',cat:'Vitamins & Nutrition',name:'Ensure shakes or powder (not single bottles)',price:null,type:'buy',n:2,ecb:7,card:1,opts:["Ensure shakes 6 pack", "Ensure powder"]},
 
-    {id:'ba1',cat:'Baby',name:'Pampers Swaddlers / Cruisers 360 / Easy Ups super pack',price:28.99,type:'buy',n:2,ecb:10,card:1},
-    {id:'ba3',cat:'Baby',name:'Millie Moon luxury diapers',price:null,type:'buy',n:2,ecb:5,card:1},
-    {id:'ba4',cat:'Baby',name:'Pampers wipes or Luvs diapers (BOGO 50% off)',price:null,type:'buy',n:2,ecb:5,bogo:1,hint:'The TikTok showed about $4.19 per pack.',flag:'The ExtraBucks amount is cut off in the ad list. $5 matches the TikTok, so confirm on the shelf tag.'},
-    {id:'ba5',cat:'Baby',name:'Huggies wipes (BOGO 50% off)',price:null,type:'spend',min:30,ecb:10,bogo:1},
+    {id:'ba1',cat:'Baby',name:'Pampers Swaddlers / Cruisers 360 / Easy Ups super pack',price:28.99,type:'buy',n:2,ecb:10,card:1,opts:["Pampers Swaddlers super pack", "Pampers Cruisers 360 super pack", "Pampers Easy Ups super pack"]},
+    {id:'ba3',cat:'Baby',name:'Millie Moon luxury diapers',price:null,type:'buy',n:2,ecb:5,card:1,opts:["Millie Moon diapers"]},
+    {id:'ba4',cat:'Baby',name:'Pampers wipes or Luvs diapers (BOGO 50% off)',price:null,type:'buy',n:2,ecb:5,bogo:1,hint:'The TikTok showed about $4.19 per pack.',flag:'The ExtraBucks amount is cut off in the ad list. $5 matches the TikTok, so confirm on the shelf tag.',opts:["Pampers wipes", "Luvs diapers"]},
+    {id:'ba5',cat:'Baby',name:'Huggies wipes (BOGO 50% off)',price:null,type:'spend',min:30,ecb:10,bogo:1,opts:["Huggies wipes"]},
 
-    {id:'fa2',cat:'Feminine & Adult Care',name:'CVS Brand pads or liners',price:null,type:'spend',min:10,ecb:3,card:1},
-    {id:'fa4',cat:'Feminine & Adult Care',name:'Always Discreet underwear',price:null,type:'buy',n:2,ecb:6,mfr:{v:3,onQty:2}},
-    {id:'fa1',cat:'Feminine & Adult Care',name:'U by Kotex',price:null,type:'spend',min:30,ecb:10,card:1},
-    {id:'fa3',cat:'Feminine & Adult Care',name:'Depend, Poise or Cottonelle flushable wipes',price:null,type:'spend',min:30,ecb:10,card:1},
+    {id:'fa2',cat:'Feminine & Adult Care',name:'CVS Brand pads or liners',price:null,type:'spend',min:10,ecb:3,card:1,opts:["CVS Health pads", "CVS Health liners"]},
+    {id:'fa4',cat:'Feminine & Adult Care',name:'Always Discreet underwear',price:null,type:'buy',n:2,ecb:6,mfr:{v:3,onQty:2},opts:["Always Discreet underwear"]},
+    {id:'fa1',cat:'Feminine & Adult Care',name:'U by Kotex',price:null,type:'spend',min:30,ecb:10,card:1,opts:["U by Kotex pads", "U by Kotex tampons", "U by Kotex liners"]},
+    {id:'fa3',cat:'Feminine & Adult Care',name:'Depend, Poise or Cottonelle flushable wipes',price:null,type:'spend',min:30,ecb:10,card:1,opts:["Depend underwear", "Poise pads", "Cottonelle flushable wipes"]},
 
-    {id:'gr1',cat:'Grocery',name:'Mentos or Trident gum bottles 40–50 ct.',price:4.99,type:'buy',n:2,ecb:1,card:1},
-    {id:'gr2',cat:'Grocery',name:'Coke, Sprite or Dr Pepper 10-pk mini cans (buy 2, 3rd free)',price:null,type:'buy',n:2,ecb:3}
+    {id:'gr1',cat:'Grocery',name:'Mentos or Trident gum bottles 40–50 ct.',price:4.99,type:'buy',n:2,ecb:1,card:1,opts:["Mentos gum bottle", "Trident gum bottle"]},
+    {id:'gr2',cat:'Grocery',name:'Coke, Sprite or Dr Pepper 10-pk mini cans (buy 2, 3rd free)',price:null,type:'buy',n:2,ecb:3,opts:["Coke mini cans 10 pack", "Sprite mini cans 10 pack", "Dr Pepper mini cans 10 pack"]}
   ];
 
   // Spend deals where several products count toward one threshold, with prices from the ad.
   var GROUPS = [
     {id:'hh8',cat:'Household',label:'Spend $25 on Tide, Gain, Downy, Charmin, Bounty or Dawn, get $8 back',min:25,ecb:8,card:1,items:[
-      {name:'Dawn Ultra 38 oz or Platinum 30 oz',price:4.99},
-      {name:'Tide PODS / Gain flings 11–14 ct.',price:5.49,mfr:1},
-      {name:'Tide liquid 27–29 oz / Downy Infusions 26 oz',price:5.99,mfr:1},
-      {name:'Tide PODS / Gain flings 18–42 ct.',price:12.99,mfr:5},
-      {name:'Tide 73–84 oz / Gain 60–81 oz',price:12.99,mfr:3},
-      {name:'Gain 99–144 oz, flings 60 ct.',price:15.99,mfr:3},
-      {name:'Charmin Ultra 6 mega rolls / Bounty 2 triple rolls',price:9.99,mfr:1},
-      {name:'Bounty paper towels 6 double rolls',price:12.99,mfr:2},
-      {name:'Charmin Ultra 12 mega rolls',price:15.99,mfr:2}]},
+      {name:'Dawn Ultra 38 oz or Platinum 30 oz',price:4.99,opts:["Dawn Ultra dish soap 38 oz", "Dawn Platinum dish soap 30 oz"]},
+      {name:'Tide PODS / Gain flings 11–14 ct.',price:5.49,mfr:1,opts:["Tide PODS 12 count", "Gain flings 14 count"]},
+      {name:'Tide liquid 27–29 oz / Downy Infusions 26 oz',price:5.99,mfr:1,opts:["Tide liquid detergent 27 oz", "Downy Infusions 26 oz"]},
+      {name:'Tide PODS / Gain flings 18–42 ct.',price:12.99,mfr:5,opts:["Tide PODS 42 count", "Gain flings 35 count"]},
+      {name:'Tide 73–84 oz / Gain 60–81 oz',price:12.99,mfr:3,opts:["Tide liquid detergent 84 oz", "Gain liquid detergent 75 oz"]},
+      {name:'Gain 99–144 oz, flings 60 ct.',price:15.99,mfr:3,opts:["Gain liquid detergent 107 oz", "Gain flings 60 count"]},
+      {name:'Charmin Ultra 6 mega rolls / Bounty 2 triple rolls',price:9.99,mfr:1,opts:["Charmin Ultra 6 mega rolls", "Bounty 2 triple rolls"]},
+      {name:'Bounty paper towels 6 double rolls',price:12.99,mfr:2,opts:["Bounty paper towels 6 double rolls"]},
+      {name:'Charmin Ultra 12 mega rolls',price:15.99,mfr:2,opts:["Charmin Ultra 12 mega rolls"]}]},
     {id:'hh10',cat:'Household',label:'Spend $30 on Scott or Kleenex, get $10 back',min:30,ecb:10,card:1,items:[
-      {name:'Scott bath tissue 12 rolls or paper towels 8 double rolls',price:9.99},
-      {name:'Kleenex tissues 3–4 pk.',price:6.49,mfr:1}]},
+      {name:'Scott bath tissue 12 rolls or paper towels 8 double rolls',price:9.99,opts:["Scott bath tissue 12 rolls", "Scott paper towels 8 double rolls"]},
+      {name:'Kleenex tissues 3–4 pk.',price:6.49,mfr:1,opts:["Kleenex tissues 4 pack"]}]},
     {id:'hhl',cat:'Household',label:'Spend $15 on Lysol, get $3 back',min:15,ecb:3,card:1,items:[
-      {name:'Lysol disinfecting wipes 75–80 ct. / spray 12.5 oz / cleaner',price:6.99,mfr:2},
-      {name:'Lysol disinfectant spray 19 oz or Air Sanitizer 10 oz',price:9.99}]}
+      {name:'Lysol disinfecting wipes 75–80 ct. / spray 12.5 oz / cleaner',price:6.99,mfr:2,opts:["Lysol disinfecting wipes 80 count", "Lysol disinfectant spray 12.5 oz", "Lysol all purpose cleaner"]},
+      {name:'Lysol disinfectant spray 19 oz or Air Sanitizer 10 oz',price:9.99,opts:["Lysol disinfectant spray 19 oz", "Lysol Air Sanitizer 10 oz"]}]}
   ];
   var CATS = ['Hair Care','Oral Care','Shave & Deodorant','Beauty','Makeup & Nails','Personal Care','Health & Medicine','Vitamins & Nutrition','Baby','Feminine & Adult Care','Household','Grocery'];
 
@@ -336,14 +348,14 @@ input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);b
       if(qty>8) return null;
     }
     var after = Math.max(0, gross - mv - sv);
-    return { id:d.id, label:d.name, items:[{name:d.name, qty:qty, price:price}], shelf:gross, after:after, ecb:d.ecb, clip:clip, card:!!d.card, flag:d.flag||null };
+    return { id:d.id, label:d.name, items:[{name:d.name, qty:qty, price:price, opts:d.opts||null}], shelf:gross, after:after, ecb:d.ecb, clip:clip, card:!!d.card, flag:d.flag||null };
   }
 
   function groupOffer(g, cfg){
     var items = g.items, n = items.length, best = null, qtys = [];
     function eval_(){
       var units=0, gross=0, mv=0, clip=[], list=[];
-      for(var i=0;i<n;i++){ if(qtys[i]>0){ units+=qtys[i]; gross+=items[i].price*qtys[i]; list.push({name:items[i].name, qty:qtys[i], price:items[i].price}); if(cfg.clip && items[i].mfr){ mv += items[i].mfr; clip.push(items[i].name+': $'+items[i].mfr.toFixed(2)+' manufacturer coupon (digital)'); } } }
+      for(var i=0;i<n;i++){ if(qtys[i]>0){ units+=qtys[i]; gross+=items[i].price*qtys[i]; list.push({name:items[i].name, qty:qtys[i], price:items[i].price, opts:items[i].opts||null}); if(cfg.clip && items[i].mfr){ mv += items[i].mfr; clip.push(items[i].name+': $'+items[i].mfr.toFixed(2)+' manufacturer coupon (digital)'); } } }
       if(!units) return;
       var after = Math.max(0, gross-mv), qual = cfg.conservative ? after : gross;
       if(qual < g.min-1e-9) return;
@@ -413,6 +425,14 @@ input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);b
   var $ = function(id){ return document.getElementById(id); };
   function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
   function money(n){ return n.toLocaleString('en-US',{style:'currency',currency:'USD'}); }
+  // Product links: a CVS.com search per eligible item (opens your default store's results).
+  function cvsUrl(q){ return 'https://www.cvs.com/search?searchTerm='+encodeURIComponent(q); }
+  function plink(q, txt){ return '<a class="plink" href="'+esc(cvsUrl(q))+'" target="_blank" rel="noopener">'+esc(txt||q)+' \u2197</a>'; }
+  function itemLinks(it){
+    var o = (it.opts && it.opts.length) ? it.opts : [it.name];
+    if(o.length===1) return plink(o[0], 'Find on CVS.com');
+    return '<details class="elig"><summary>'+o.length+' eligible items</summary><ul>'+o.map(function(q){ return '<li>'+plink(q)+'</li>'; }).join('')+'</ul></details>';
+  }
 
   var S = {
     cats:['Hair Care','Oral Care','Personal Care','Household'],
@@ -452,7 +472,7 @@ input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);b
     var items = [], clip = [], card = false;
     st.offers.forEach(function(o){ items = items.concat(o.items); clip = clip.concat(o.clip); if(o.card) card = true; });
     var h = '<div class="step"><div class="step-h"><b>Transaction '+(idx+1)+'</b><span class="muted">Earns '+money(r2(st.earn))+' ExtraBucks</span></div><div class="step-b">';
-    h += items.map(function(it){ return '<div class="it"><span>'+it.qty+' × '+esc(it.name)+'</span><span>'+money(r2(it.price))+' ea.</span></div>'; }).join('');
+    h += items.map(function(it){ return '<div class="item"><div class="it"><span>'+it.qty+' × '+esc(it.name)+'</span><span>'+money(r2(it.price))+' ea.</span></div>'+itemLinks(it)+'</div>'; }).join('');
     if(clip.length) h += '<div class="muted"><b>Clip first:</b> '+clip.map(esc).join('; ')+'</div>';
     st.offers.forEach(function(o){ if(o.flag) h += '<div class="alert">'+esc(o.flag)+'</div>'; });
     h += '<div class="kv"><div><small>Use ExtraBucks</small><b>'+money(r2(st.apply))+'</b></div><div><small>You pay</small><b>'+money(r2(st.cash))+'</b></div><div><small>ExtraBucks after</small><b>'+money(r2(st.eAfter))+'</b></div></div>';
@@ -503,7 +523,7 @@ input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);b
     var t = [];
     t.push({id:'t1', text:'Open the CVS app and have your ExtraCare card ready (scan it or enter your phone number at the register).'});
     if(clip.length) t.push({id:'t2', text:'In the app, clip: '+clip.join('; ')+'.'});
-    items.forEach(function(it,k){ t.push({id:'t3'+k, text:'Pick up '+it.qty+' × '+it.name+'. The tag should read about '+money(r2(it.price))+' each.'}); });
+    items.forEach(function(it,k){ t.push({id:'t3'+k, item:it, text:'Pick up '+it.qty+' × '+it.name+'. The tag should read about '+money(r2(it.price))+' each.'}); });
     if(st.apply>0.005) t.push({id:'t4', text:'At the register, scan your card first, then apply '+money(r2(st.apply))+' of ExtraBucks.'});
     else t.push({id:'t4', text:'At the register, scan your card. You have no ExtraBucks to use yet.'});
     t.push({id:'t5', text:'Expect to pay about '+money(r2(st.cash))+'. If the screen shows more than '+money(r2(st.cash+1))+', stop and ask the cashier before you pay.'});
@@ -533,7 +553,7 @@ input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);b
     h2 += '<h2>'+esc(st.offers.map(function(o){return o.label;}).join(' + '))+'</h2>';
     h2 += '<div class="kv"><div><small>Use ExtraBucks</small><b>'+money(r2(st.apply))+'</b></div><div><small>You pay</small><b>'+money(r2(st.cash))+'</b></div><div><small>You earn</small><b>'+money(r2(st.earn))+'</b></div></div>';
     if(r.msg) h2 += '<div class="alert">'+esc(r.msg)+'</div>';
-    h2 += '<div>'+tasks.map(function(t){ var k=r.i+':'+t.id, on=!!r.tasks[k]; return '<label class="task'+(on?' done':'')+'" for="tk-'+k+'"><input type="checkbox" id="tk-'+k+'" data-task="'+k+'"'+(on?' checked':'')+'><span>'+esc(t.text)+'</span></label>'; }).join('')+'</div>';
+    h2 += '<div>'+tasks.map(function(t){ var k=r.i+':'+t.id, on=!!r.tasks[k]; return '<div class="task-wrap"><label class="task'+(on?' done':'')+'" for="tk-'+k+'"><input type="checkbox" id="tk-'+k+'" data-task="'+k+'"'+(on?' checked':'')+'><span>'+esc(t.text)+'</span></label>'+(t.item?'<div class="task-links">'+itemLinks(t.item)+'</div>':'')+'</div>'; }).join('')+'</div>';
     h2 += '<div class="row"><label class="f" for="paid">I paid ($)<input id="paid" class="mono" inputmode="decimal" value="'+r2(st.cash).toFixed(2)+'"></label><label class="f" for="bal">ExtraBucks balance now ($)<input id="bal" class="mono" inputmode="decimal" value="'+r2(st.eAfter).toFixed(2)+'"></label></div>';
     h2 += '<div class="row"><button class="btn primary" id="gotit" type="button"'+(allDone?'':' disabled')+'>Reward showed up. Next transaction</button><button class="btn danger" id="nogot" type="button"'+(allDone?'':' disabled')+'>Reward did not show up</button></div>';
     h2 += '<p class="muted">Tick every box to unlock the buttons. When you press one, the rest of the plan is rebuilt from the cash you actually paid and the balance you actually have.</p>';
@@ -576,7 +596,7 @@ input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);b
       if(!ds.length && !gs.length) return;
       h += '<div class="card"><h3>'+esc(c)+'</h3>';
       gs.forEach(function(g){
-        h += '<div class="dealrow"><div class="top"><b>'+esc(g.label)+'</b><span class="chip ok">price from ad</span></div><div class="muted">'+g.items.map(function(i){return esc(i.name)+' '+money(i.price);}).join(' · ')+'</div></div>';
+        h += '<div class="dealrow"><div class="top"><b>'+esc(g.label)+'</b><span class="chip ok">price from ad</span></div><div class="col" style="gap:4px">'+g.items.map(function(i){return '<div class="item"><div class="it"><span>'+esc(i.name)+'</span><span>'+money(i.price)+'</span></div>'+itemLinks(i)+'</div>';}).join('')+'</div></div>';
       });
       ds.forEach(function(d){
         var p = S.prices[d.id]>0 ? S.prices[d.id] : d.price;
@@ -587,6 +607,7 @@ input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);b
         } else h += '<span class="chip">no plan</span>';
         h += '</div><div class="muted">'+esc(dealText(d))+(d.hint?' · '+esc(d.hint):'')+'</div>';
         if(d.flag) h += '<div class="muted"><b>Heads up:</b> '+esc(d.flag)+'</div>';
+        h += itemLinks(d);
         h += '</div>';
       });
       h += '</div>';

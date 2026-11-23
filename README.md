@@ -6,6 +6,11 @@ You pick categories, a cash limit and how many ExtraBucks you already have. It p
 transactions where each one is paid for by the ExtraBucks earned in the one before, then walks you
 through each transaction step by step.
 
+**Live app:** https://fifiteklemedhin.github.io/coupon-coach/ (GitHub Pages, deployed from `main`).
+
+Each planned item links to CVS.com. Deals that cover a range of products show an expandable list of
+eligible items, each with its own link.
+
 ## Files
 
 - `index.html` - the whole app (HTML, CSS and JS, no build step). Open it in a browser.
