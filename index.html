@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coupon Coach</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column. Setup on top, a receipt-style summary, then one card per transaction.
+   Tokens: cool paper greys, one money-green accent; amber for cautions, red for stop signs. */
+:root{
+  --bg:#f2f5f7; --surface:#ffffff; --ink:#16212b; --muted:#566473; --line:#ccd6de;
+  --accent:#0a7563; --on-accent:#ffffff; --accent-soft:#dff3ee;
+  --warn:#8f4604; --warn-soft:#fdeedb; --bad:#a8231b; --bad-soft:#fbe7e4;
+  --paper:#fffef8; --paper-ink:#1d252c; --paper-line:#c9c6b8;
+  --font-head:'Space Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e151b; --surface:#16202a; --ink:#e7eef4; --muted:#9aa9b6; --line:#2a3947;
+    --accent:#3cc4a8; --on-accent:#05241e; --accent-soft:#12302a;
+    --warn:#f2a552; --warn-soft:#33250f; --bad:#ff8f86; --bad-soft:#3b1a17;
+    --paper:#1a242d; --paper-ink:#e7eef4; --paper-line:#3a4a58;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e151b; --surface:#16202a; --ink:#e7eef4; --muted:#9aa9b6; --line:#2a3947;
+  --accent:#3cc4a8; --on-accent:#05241e; --accent-soft:#12302a;
+  --warn:#f2a552; --warn-soft:#33250f; --bad:#ff8f86; --bad-soft:#3b1a17;
+  --paper:#1a242d; --paper-ink:#e7eef4; --paper-line:#3a4a58;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--font-body); font-size:15px; line-height:1.5; margin:0;
+  padding-block:20px 56px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.col{display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--font-head);line-height:1.2;margin:0;text-wrap:balance}
+h1{font-size:30px;letter-spacing:-.01em}
+h2{font-size:21px}
+h3{font-size:16px}
+p{margin:0}
+a{color:var(--accent)}
+.sub{color:var(--muted);max-width:62ch}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+header{display:flex;flex-direction:column;gap:8px}
+.asof{display:inline-block;align-self:flex-start;background:var(--accent-soft);border:1px dashed var(--accent);border-radius:6px;padding:6px 10px;font-size:13px}
+.asof.stale{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.tab{font:inherit;font-weight:600;font-size:14px;color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;padding:10px 12px;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:12px}
+.row>*{min-width:0}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--muted);flex:1 1 130px}
+input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0;font-weight:400}
+.mono{font-family:var(--font-mono)}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font:inherit;font-weight:600;font-size:14px;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:999px;padding:7px 12px;cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.pill small{font-weight:500;opacity:.8;margin-left:4px}
+.btn{font:inherit;font-weight:600;font-size:14px;border-radius:8px;padding:10px 14px;cursor:pointer;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn.danger{background:var(--bad-soft);color:var(--bad);border-color:var(--bad)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.link{font:inherit;font-size:13px;color:var(--muted);background:none;border:0;text-decoration:underline;cursor:pointer;padding:6px}
+.checks{display:flex;flex-direction:column;gap:8px}
+.ck{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:400;color:var(--ink)}
+.ck input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--accent)}
+
+.receipt{background:var(--paper);color:var(--paper-ink);font-family:var(--font-mono);font-size:14px;padding:16px;border-radius:4px;border:1px solid var(--paper-line);display:flex;flex-direction:column;gap:6px}
+.receipt .ln{display:flex;justify-content:space-between;gap:12px}
+.receipt .ln span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.receipt hr{border:0;border-top:2px dashed var(--paper-line);margin:6px 0;width:100%}
+.receipt .head{font-family:var(--font-head);font-weight:700;letter-spacing:.14em;text-transform:uppercase;text-align:center;font-size:13px}
+.receipt .big{font-size:24px;font-weight:600}
+.receipt .small{font-size:12.5px;line-height:1.45;opacity:.9}
+
+.step{border:1px solid var(--line);border-radius:10px;background:var(--surface);display:flex;flex-direction:column}
+.step-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.step-h b{font-family:var(--font-head);font-size:16px}
+.step-b{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.it{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.it span:last-child{font-family:var(--font-mono);white-space:nowrap}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.kv{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kv div{background:var(--bg);border-radius:8px;padding:8px 10px}
+.kv small{display:block;font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.kv b{font-family:var(--font-mono);font-size:16px}
+.chip{display:inline-block;font-size:12px;font-weight:600;border-radius:4px;padding:2px 6px;background:var(--warn-soft);color:var(--warn)}
+.chip.ok{background:var(--accent-soft);color:var(--ink)}
+.alert{font-size:14px;border-radius:8px;padding:10px 12px;background:var(--warn-soft);border-left:5px solid var(--warn)}
+.alert.bad{background:var(--bad-soft);border-left-color:var(--bad)}
+.alert.good{background:var(--accent-soft);border-left-color:var(--accent)}
+.muted{color:var(--muted);font-size:13px}
+
+.coach{border:2px solid var(--accent)}
+.task{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px;font-weight:400;color:var(--ink)}
+.task input{width:24px;height:24px;flex:none;accent-color:var(--accent)}
+.task.done span{color:var(--muted);text-decoration:line-through}
+.dealrow{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}
+.dealrow .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dealrow input{max-width:130px;font-family:var(--font-mono);padding:6px 8px;font-size:15px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">CVS ExtraBucks rolls</span>
+    <h1>Coupon Coach</h1>
+    <p class="sub">Pick your categories and your cash limit. The app builds a roll from this week's CVS ad: each transaction is paid for by the ExtraBucks from the one before. Then it coaches you through each one in the store.</p>
+    <p class="asof" id="asof"></p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="plan">Roll plan</button>
+    <button class="tab" role="tab" data-tab="store">In store</button>
+    <button class="tab" role="tab" data-tab="deals">All deals</button>
+    <button class="tab" role="tab" data-tab="notes">Notes</button>
+  </nav>
+
+  <section id="v-plan" class="col" hidden>
+    <div class="card">
+      <h2>What do you want?</h2>
+      <div>
+        <p class="muted" style="margin-bottom:8px">Categories (pick any)</p>
+        <div class="pills" id="catpills"></div>
+      </div>
+      <div class="row">
+        <label class="f" for="budget">Most cash you'll spend, whole trip ($)
+          <input id="budget" class="mono" inputmode="decimal" value="25">
+        </label>
+        <label class="f" for="ecb0">ExtraBucks you already have ($)
+          <input id="ecb0" class="mono" inputmode="decimal" value="0">
+        </label>
+        <label class="f" for="tax">Sales tax (%)
+          <input id="tax" class="mono" inputmode="decimal" value="7">
+        </label>
+        <label class="f" for="maxsteps">Transactions at most
+          <select id="maxsteps"><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option></select>
+        </label>
+      </div>
+      <div class="checks">
+        <label class="ck" for="clip"><input type="checkbox" id="clip" checked><span>I'll clip the digital coupons the plan lists (they are free in the app)</span></label>
+        <label class="ck" for="safe"><input type="checkbox" id="safe" checked><span>Play it safe: count coupons against spend-threshold deals</span></label>
+      </div>
+      <p class="muted" id="coverage"></p>
+    </div>
+
+    <div id="planout" class="col"></div>
+  </section>
+
+  <section id="v-store" class="col" hidden></section>
+
+  <section id="v-deals" class="col" hidden>
+    <div>
+      <h2>All ExtraBucks deals this week</h2>
+      <p class="sub">Every ExtraBucks deal I could read in CVS's weekly ad. Many ads don't show a shelf price. Type the price from the shelf tag and the deal joins your plan.</p>
+    </div>
+    <div id="dealslist" class="col"></div>
+  </section>
+
+  <section id="v-notes" class="col" hidden>
+    <h2>How this works, and what it can't do</h2>
+    <div class="card">
+      <h3>Where the deals come from</h3>
+      <p>I read CVS's own weekly ad page (Nov 22–28, 2026) on the CVS site in list view. Categories are mine, matched to CVS's site filters. The ad is store-specific, and I read it for the Cambridge, MA store that CVS defaulted to, so check prices on your shelf. The app does not update by itself. When a new week starts, ask me in chat and I'll re-read the ad and update this page.</p>
+      <h3>What it can't see</h3>
+      <p>Your personal coupons and your ExtraBucks balance are in your account, which I can't open for you. The plan assumes the digital coupons it lists are available to you. If one isn't in your app, the cash for that step goes up, so check the number at the register.</p>
+      <h3>Rules baked into the math</h3>
+      <ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">
+        <li>You can use ExtraBucks you earned on a later transaction. Rewards from a transaction can't be used on that same one, so each step pays with what the previous steps earned.</li>
+        <li>Guides describe a "98% rule": if coupons drop your total below a spend threshold, the reward may not print. Play it safe is on by default for that reason.</li>
+        <li>ExtraBucks are store credit, not cash. If a coupon or reward is worth more than the items, the extra isn't paid back.</li>
+        <li>ExtraBucks expire. Check the date on your receipt or in the app.</li>
+        <li>Tax is a rough estimate at the rate you enter.</li>
+      </ul>
+      <h3>If something goes wrong</h3>
+      <p>If a reward doesn't print, don't buy the next step. Take your receipt to the register or customer service the same day. The coach re-plans from the ExtraBucks balance you actually have.</p>
+      <h3>Not covered</h3>
+      <p>Items where the ad shows no ExtraBucks amount (Secret, Axe, Puffs) and the gift-card deal (spend $100 get $20) are left out of plans.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  var AD = { start:'2026-11-22', end:'2026-11-28', label:'Nov 22–28, 2026', store:'215 Alewife Brook Pkwy, Cambridge MA (CVS default)' };
+
+  //ENGINE-START
+  var DEALS = [
+    // type 'buy': buy n get ecb. type 'spend': spend min get ecb. price = unit shelf price from the ad (null = not shown).
+    {id:'hc1',cat:'Hair Care',name:'Conair curling iron (0.75 or 1 in.) or turbo/mid-size dryer',price:14.99,type:'buy',n:1,ecb:10,card:1},
+    {id:'hc2',cat:'Hair Care',name:'Conair styling tools (mini waver, smoothing brush, flat iron, curling iron, 1875W dryer)',price:19.99,type:'buy',n:1,ecb:10,card:1},
+    {id:'hc3',cat:'Hair Care',name:'Conair InfinitiPRO styling tools (1.25 in. clip, flat iron, dryer, waver)',price:29.99,type:'buy',n:1,ecb:10},
+    {id:'hc4',cat:'Hair Care',name:'Conair InfinitiPRO all-in-one dryer brush and similar',price:39.99,type:'buy',n:1,ecb:15},
+    {id:'hc5',cat:'Hair Care',name:'Head & Shoulders shampoo 10.6–12.5 oz',price:6.99,type:'buy',n:2,ecb:4,card:1},
+    {id:'hc6',cat:'Hair Care',name:"L'Oreal Elvive shampoo or conditioner 12.6 oz",price:5.49,type:'buy',n:2,ecb:3,card:1},
+    {id:'hc7',cat:'Hair Care',name:'Garnier Fructis shampoo/conditioner 11.3–13 oz',price:4.49,type:'buy',n:2,ecb:3,card:1},
+    {id:'hc8',cat:'Hair Care',name:"L'Oreal hair color",price:null,type:'buy',n:2,ecb:5,card:1},
+    {id:'hc9',cat:'Hair Care',name:'Garnier Nutrisse or Olia hair color',price:null,type:'buy',n:2,ecb:4,card:1},
+    {id:'hc10',cat:'Hair Care',name:"Clairol Nice'n Easy / Colorstrong hair color",price:null,type:'buy',n:1,ecb:4,card:1,mfr:{v:2}},
+    {id:'hc11',cat:'Hair Care',name:"L'Oreal Ever hair care",price:null,type:'buy',n:2,ecb:5,card:1},
+    {id:'hc12',cat:'Hair Care',name:'Pantene hair care',price:null,type:'spend',min:20,ecb:5,mfr:{v:5,onQty:2}},
+    {id:'hc13',cat:'Hair Care',name:'Kaleidoscope, Pardon My Fro or Watch & Sea hair care',price:null,type:'spend',min:20,ecb:5,card:1},
+
+    {id:'oc1',cat:'Oral Care',name:'Colgate Optic White / Total toothpaste (2 for $12)',price:6.00,type:'buy',n:2,ecb:6,mfr:{v:5,onQty:2},flag:'The ExtraBucks amount is cut off in the ad list. $6 matches the TikTok, so confirm on the shelf tag.'},
+    {id:'oc2',cat:'Oral Care',name:'Colgate Total 5.1 oz toothpaste or Total mouthwash',price:4.99,type:'buy',n:2,ecb:5,card:1,mfr:{v:2}},
+    {id:'oc5',cat:'Oral Care',name:'Crest 3D White / Pro-Health toothpaste (2 for $10)',price:5.00,type:'buy',n:2,ecb:4,card:1},
+    {id:'oc3',cat:'Oral Care',name:'Colgate Optic White 3 oz, Total value pack or 2-ct manual brush',price:null,type:'buy',n:2,ecb:8,card:1},
+    {id:'oc4',cat:'Oral Care',name:'Colgate/hello kids oral care',price:null,type:'spend',min:12,ecb:5,mfr:{v:3}},
+    {id:'oc6',cat:'Oral Care',name:'Crest mouthwash (Brilliance, Clinical, Whitening, Gum)',price:null,type:'buy',n:2,ecb:5,card:1},
+    {id:'oc7',cat:'Oral Care',name:'Crest 2-pk toothpaste, Oral-B brushes, floss or picks',price:null,type:'spend',min:20,ecb:5,card:1},
+    {id:'oc8',cat:'Oral Care',name:'Sensodyne, Pronamel or Parodontax',price:null,type:'buy',n:2,ecb:10,card:1},
+    {id:'oc9',cat:'Oral Care',name:'TheraBreath toothpaste (BOGO 50% off)',price:null,type:'buy',n:2,ecb:2,card:1,bogo:1},
+    {id:'oc10',cat:'Oral Care',name:'Guru Nanda oil pulling / whitening',price:null,type:'buy',n:2,ecb:5,card:1},
+    {id:'oc11',cat:'Oral Care',name:'Biotène',price:null,type:'buy',n:2,ecb:4,card:1},
+    {id:'oc12',cat:'Oral Care',name:'Polident or Poligrip',price:null,type:'buy',n:2,ecb:5,card:1},
+
+    {id:'sd1',cat:'Shave & Deodorant',name:'Old Spice deodorant (BOGO 50% off)',price:null,type:'buy',n:2,ecb:4,bogo:1,mfr:{v:7,onQty:2},hint:'The TikTok showed about $9.29 each.',flag:'The ExtraBucks amount is cut off in the ad list. $4 matches the TikTok, so confirm on the shelf tag.'},
+    {id:'sd3',cat:'Shave & Deodorant',name:'Dove deodorant (BOGO 50% off)',price:null,type:'buy',n:2,ecb:3,bogo:1},
+    {id:'sd5',cat:'Shave & Deodorant',name:'Gillette/Venus razors or cartridges',price:null,type:'buy',n:2,ecb:8,card:1},
+    {id:'sd6',cat:'Shave & Deodorant',name:'Gillette/Venus disposables or Satin Care shave foam',price:null,type:'buy',n:2,ecb:3,card:1},
+    {id:'sd7',cat:'Shave & Deodorant',name:'Schick/Skintimate disposable razors',price:null,type:'buy',n:2,ecb:4,card:1},
+    {id:'sd8',cat:'Shave & Deodorant',name:'Philips Norelco shave products',price:null,type:'spend',min:25,ecb:10,card:1,hint:'The TikTok used nose trimmers at about $12.99 each.'},
+    {id:'sd9',cat:'Shave & Deodorant',name:'Dove MEN+Care deodorant, body wash or hair care',price:null,type:'buy',n:2,ecb:3,card:1},
+    {id:'sd2',cat:'Shave & Deodorant',name:'Secret Clinical or whole body deodorant (BOGO 50% off)',price:null,type:'buy',n:2,ecb:null,bogo:1,mfr:{v:10,onQty:2}},
+    {id:'sd4',cat:'Shave & Deodorant',name:'AXE deodorant or body spray (BOGO 50% off)',price:null,type:'buy',n:2,ecb:null,bogo:1,mfr:{v:5,onQty:2}},
+
+    {id:'b1',cat:'Beauty',name:'L.A. Colors cosmetic gift set',price:5.99,type:'buy',n:1,ecb:3,hint:'Listed as regular retail price.'},
+    {id:'b2',cat:'Beauty',name:'L.A. Colors / X+Y=Beauty / Lip Smackers gift set',price:9.99,type:'buy',n:1,ecb:5,card:1,hint:'Listed as regular retail price.'},
+    {id:'b3',cat:'Beauty',name:'Holiday cosmetic gift set',price:12.99,type:'buy',n:1,ecb:7,card:1,hint:'Listed as regular retail price.'},
+    {id:'b5',cat:'Beauty',name:'Maybelline cosmetics',price:6.00,type:'buy',n:2,ecb:6,store:{v:3,note:'$3 off ExtraCare coupon in the CVS app'},flag:'Check the $3 coupon terms in the app. The plan applies it once.'},
+    {id:'b4',cat:'Beauty',name:"L'Oreal cosmetics",price:null,type:'buy',n:2,ecb:5,card:1},
+    {id:'b6',cat:'Beauty',name:'Revlon cosmetics or beauty tools',price:null,type:'buy',n:2,ecb:5,store:{v:4,note:'$4 off ExtraCare coupon in the CVS app'}},
+    {id:'b7',cat:'Beauty',name:'CoverGirl cosmetics',price:null,type:'spend',min:15,ecb:5,card:1},
+    {id:'b8',cat:'Beauty',name:'Neutrogena cosmetics',price:null,type:'spend',min:12,ecb:7,card:1},
+    {id:'b13',cat:'Beauty',name:'Neutrogena makeup remover towelettes',price:null,type:'buy',n:2,ecb:7,card:1},
+
+    {id:'m1',cat:'Makeup & Nails',name:'NYX Professional or holiday makeup',price:null,type:'spend',min:15,ecb:5},
+    {id:'m2',cat:'Makeup & Nails',name:'Kiss artificial nails',price:null,type:'buy',n:2,ecb:5,card:1},
+    {id:'m3',cat:'Makeup & Nails',name:'Sally Hansen cosmetics or beauty tools',price:null,type:'spend',min:10,ecb:4,card:1},
+    {id:'m4',cat:'Makeup & Nails',name:'Ardell false eyelashes',price:null,type:'buy',n:2,ecb:5,card:1},
+
+    {id:'pc1',cat:'Personal Care',name:'Olay Regenerist serum, night cream or lotion',price:null,type:'buy',n:2,ecb:8,card:1},
+    {id:'pc2',cat:'Personal Care',name:'Olay Regenerist Eyes, Whips or Ingredients',price:null,type:'buy',n:2,ecb:8,card:1},
+    {id:'pc3',cat:'Personal Care',name:'Olay Regenerist Max or Super Serum',price:null,type:'buy',n:2,ecb:8,mfr:{v:15,onQty:2}},
+    {id:'pc4',cat:'Personal Care',name:"L'Oreal facial care",price:null,type:'spend',min:30,ecb:10,store:{v:5,note:'$5 off ExtraCare coupon in the CVS app'}},
+    {id:'pc5',cat:'Personal Care',name:'Garnier facial care',price:null,type:'spend',min:12,ecb:3,card:1},
+    {id:'pc6',cat:'Personal Care',name:'Nivea hand & body lotion or facial care',price:null,type:'spend',min:20,ecb:5,card:1},
+    {id:'pc7',cat:'Personal Care',name:'STARFACE acne',price:null,type:'buy',n:1,ecb:3,card:1},
+    {id:'pc8',cat:'Personal Care',name:'Clean & Clear acne care',price:null,type:'spend',min:8,ecb:3,card:1},
+    {id:'pc9',cat:'Personal Care',name:'Olay body wash 20 oz or pump 35 oz',price:10.99,type:'buy',n:2,ecb:5,card:1},
+    {id:'pc10',cat:'Personal Care',name:'Nivea body wash',price:null,type:'buy',n:2,ecb:5,card:1},
+    {id:'pc11',cat:'Personal Care',name:'Softsoap hand soap, Irish Spring 3-pk or Velvet Silk foaming soap',price:3.29,type:'buy',n:2,ecb:3,card:1},
+    {id:'pc12',cat:'Personal Care',name:'Dove or MEN+Care bar soap 6-pk / body wash pump',price:null,type:'buy',n:2,ecb:3,card:1,mfr:{v:3}},
+
+    {id:'hm1',cat:'Health & Medicine',name:'Colace, RectiCare, Senokot or Mylanta digestive health',price:null,type:'spend',min:20,ecb:5,card:1},
+    {id:'hm2',cat:'Health & Medicine',name:'Adult Tylenol or Motrin, 75 ct. or larger',price:null,type:'buy',n:2,ecb:6,card:1,mfr:{v:2}},
+    {id:'hm3',cat:'Health & Medicine',name:'Biofreeze (not the 1-ct. patch)',price:null,type:'buy',n:2,ecb:15,card:1},
+    {id:'hm4',cat:'Health & Medicine',name:'KT Tape',price:null,type:'buy',n:2,ecb:8,card:1},
+    {id:'hm5',cat:'Health & Medicine',name:'OneTouch meters, lancets or test strips',price:null,type:'spend',min:30,ecb:10,card:1},
+
+    {id:'vn1',cat:'Vitamins & Nutrition',name:'Natrol vitamins or sleep supplements (BOGO 50% off)',price:null,type:'buy',n:2,ecb:5,bogo:1},
+    {id:'vn2',cat:'Vitamins & Nutrition',name:'Irwin Naturals',price:null,type:'spend',min:20,ecb:5,card:1},
+    {id:'vn3',cat:'Vitamins & Nutrition',name:'Ensure shakes or powder (not single bottles)',price:null,type:'buy',n:2,ecb:7,card:1},
+
+    {id:'ba1',cat:'Baby',name:'Pampers Swaddlers / Cruisers 360 / Easy Ups super pack',price:28.99,type:'buy',n:2,ecb:10,card:1},
+    {id:'ba3',cat:'Baby',name:'Millie Moon luxury diapers',price:null,type:'buy',n:2,ecb:5,card:1},
+    {id:'ba4',cat:'Baby',name:'Pampers wipes or Luvs diapers (BOGO 50% off)',price:null,type:'buy',n:2,ecb:5,bogo:1,hint:'The TikTok showed about $4.19 per pack.',flag:'The ExtraBucks amount is cut off in the ad list. $5 matches the TikTok, so confirm on the shelf tag.'},
+    {id:'ba5',cat:'Baby',name:'Huggies wipes (BOGO 50% off)',price:null,type:'spend',min:30,ecb:10,bogo:1},
+
+    {id:'fa2',cat:'Feminine & Adult Care',name:'CVS Brand pads or liners',price:null,type:'spend',min:10,ecb:3,card:1},
+    {id:'fa4',cat:'Feminine & Adult Care',name:'Always Discreet underwear',price:null,type:'buy',n:2,ecb:6,mfr:{v:3,onQty:2}},
+    {id:'fa1',cat:'Feminine & Adult Care',name:'U by Kotex',price:null,type:'spend',min:30,ecb:10,card:1},
+    {id:'fa3',cat:'Feminine & Adult Care',name:'Depend, Poise or Cottonelle flushable wipes',price:null,type:'spend',min:30,ecb:10,card:1},
+
+    {id:'gr1',cat:'Grocery',name:'Mentos or Trident gum bottles 40–50 ct.',price:4.99,type:'buy',n:2,ecb:1,card:1},
+    {id:'gr2',cat:'Grocery',name:'Coke, Sprite or Dr Pepper 10-pk mini cans (buy 2, 3rd free)',price:null,type:'buy',n:2,ecb:3}
+  ];
+
+  // Spend deals where several products count toward one threshold, with prices from the ad.
+  var GROUPS = [
+    {id:'hh8',cat:'Household',label:'Spend $25 on Tide, Gain, Downy, Charmin, Bounty or Dawn, get $8 back',min:25,ecb:8,card:1,items:[
+      {name:'Dawn Ultra 38 oz or Platinum 30 oz',price:4.99},
+      {name:'Tide PODS / Gain flings 11–14 ct.',price:5.49,mfr:1},
+      {name:'Tide liquid 27–29 oz / Downy Infusions 26 oz',price:5.99,mfr:1},
+      {name:'Tide PODS / Gain flings 18–42 ct.',price:12.99,mfr:5},
+      {name:'Tide 73–84 oz / Gain 60–81 oz',price:12.99,mfr:3},
+      {name:'Gain 99–144 oz, flings 60 ct.',price:15.99,mfr:3},
+      {name:'Charmin Ultra 6 mega rolls / Bounty 2 triple rolls',price:9.99,mfr:1},
+      {name:'Bounty paper towels 6 double rolls',price:12.99,mfr:2},
+      {name:'Charmin Ultra 12 mega rolls',price:15.99,mfr:2}]},
+    {id:'hh10',cat:'Household',label:'Spend $30 on Scott or Kleenex, get $10 back',min:30,ecb:10,card:1,items:[
+      {name:'Scott bath tissue 12 rolls or paper towels 8 double rolls',price:9.99},
+      {name:'Kleenex tissues 3–4 pk.',price:6.49,mfr:1}]},
+    {id:'hhl',cat:'Household',label:'Spend $15 on Lysol, get $3 back',min:15,ecb:3,card:1,items:[
+      {name:'Lysol disinfecting wipes 75–80 ct. / spray 12.5 oz / cleaner',price:6.99,mfr:2},
+      {name:'Lysol disinfectant spray 19 oz or Air Sanitizer 10 oz',price:9.99}]}
+  ];
+  var CATS = ['Hair Care','Oral Care','Shave & Deodorant','Beauty','Makeup & Nails','Personal Care','Health & Medicine','Vitamins & Nutrition','Baby','Feminine & Adult Care','Household','Grocery'];
+
+  function r2(n){ return Math.round(n*100)/100; }
+  function num(v){ var n = parseFloat(String(v==null?'':v).replace(/[^0-9.\-]/g,'')); return isFinite(n)?n:0; }
+
+  function grossFor(price, qty, bogo){ return bogo ? price*(qty - 0.5*Math.floor(qty/2)) : price*qty; }
+
+  function dealOffer(d, price, cfg){
+    var qty = d.n || 1, gross, mv = 0, sv = 0, clip = [];
+    function coupons(q, g){
+      mv = 0; sv = 0; clip = [];
+      if(cfg.clip && d.mfr && d.mfr.v>0){ mv = d.mfr.v * Math.max(1, Math.floor(q/(d.mfr.onQty||q))); clip.push(d.name+': $'+mv.toFixed(2)+' manufacturer coupon (digital)'); }
+      if(cfg.clip && d.store && d.store.v>0){ sv = d.store.v; clip.push(d.name+': '+(d.store.note||('$'+sv+' store coupon'))); }
+      var cap = g; if(mv+sv>cap){ var over = mv+sv-cap; mv = Math.max(0, mv-over); }
+    }
+    if(d.type==='buy'){
+      gross = grossFor(price, qty, d.bogo); coupons(qty, gross);
+    } else {
+      for(qty=1; qty<=8; qty++){
+        gross = grossFor(price, qty, d.bogo); coupons(qty, gross);
+        var q = cfg.conservative ? gross-mv-sv : gross;
+        if(q >= d.min-1e-9) break;
+      }
+      if(qty>8) return null;
+    }
+    var after = Math.max(0, gross - mv - sv);
+    return { id:d.id, label:d.name, items:[{name:d.name, qty:qty, price:price}], shelf:gross, after:after, ecb:d.ecb, clip:clip, card:!!d.card, flag:d.flag||null };
+  }
+
+  function groupOffer(g, cfg){
+    var items = g.items, n = items.length, best = null, qtys = [];
+    function eval_(){
+      var units=0, gross=0, mv=0, clip=[], list=[];
+      for(var i=0;i<n;i++){ if(qtys[i]>0){ units+=qtys[i]; gross+=items[i].price*qtys[i]; list.push({name:items[i].name, qty:qtys[i], price:items[i].price}); if(cfg.clip && items[i].mfr){ mv += items[i].mfr; clip.push(items[i].name+': $'+items[i].mfr.toFixed(2)+' manufacturer coupon (digital)'); } } }
+      if(!units) return;
+      var after = Math.max(0, gross-mv), qual = cfg.conservative ? after : gross;
+      if(qual < g.min-1e-9) return;
+      if(!best || after < best.after-1e-9 || (Math.abs(after-best.after)<1e-9 && gross>best.shelf)) best = { id:g.id, label:g.label, items:list, shelf:gross, after:after, ecb:g.ecb, clip:clip, card:!!g.card, flag:null };
+    }
+    (function rec(i, units){
+      if(i===n){ eval_(); return; }
+      for(var q=0;q<=3 && units+q<=5;q++){ qtys[i]=q; rec(i+1, units+q); }
+      qtys[i]=0;
+    })(0,0);
+    return best;
+  }
+
+  function buildOffers(cfg){
+    var out = [], used = cfg.used||[], cats = cfg.cats;
+    DEALS.forEach(function(d){
+      if(cats.indexOf(d.cat)<0 || used.indexOf(d.id)>=0 || !(d.ecb>0)) return;
+      var price = (cfg.prices && cfg.prices[d.id]>0) ? cfg.prices[d.id] : d.price;
+      if(!(price>0)) return;
+      var o = dealOffer(d, price, cfg); if(o) out.push(o);
+    });
+    GROUPS.forEach(function(g){
+      if(cats.indexOf(g.cat)<0 || used.indexOf(g.id)>=0) return;
+      var o = groupOffer(g, cfg); if(o) out.push(o);
+    });
+    return out;
+  }
+
+  function planRoll(cfg){
+    var offers = buildOffers(cfg), taxf = 1 + Math.max(0,cfg.tax)/100, budget = Math.max(0,cfg.budget);
+    var moves = [];
+    offers.forEach(function(a,i){
+      moves.push([a]);
+      for(var j=i+1;j<offers.length;j++) moves.push([a,offers[j]]);
+    });
+    var start = { E:Math.max(0,cfg.ecb0), cash:0, shelf:0, steps:[], ids:[] };
+    var beam = [start], best = start, bestScore = 0;
+    function score(s){ return s.shelf + s.E - s.cash; }
+    for(var k=0;k<cfg.maxSteps;k++){
+      var next = {};
+      beam.forEach(function(s){
+        moves.forEach(function(m){
+          var ids = m.map(function(x){return x.id;});
+          for(var q=0;q<ids.length;q++) if(s.ids.indexOf(ids[q])>=0) return;
+          var after = 0, shelf = 0, ecb = 0;
+          m.forEach(function(x){ after+=x.after; shelf+=x.shelf; ecb+=x.ecb; });
+          var due = after*taxf, apply = Math.min(s.E, due), cash = due-apply;
+          if(s.cash+cash > budget+1e-9) return;
+          var E2 = s.E-apply+ecb;
+          var step = { offers:m, due:due, apply:apply, cash:cash, earn:ecb, eBefore:s.E, eAfter:E2, shelf:shelf };
+          var ns = { E:E2, cash:s.cash+cash, shelf:s.shelf+shelf, steps:s.steps.concat([step]), ids:s.ids.concat(ids) };
+          var key = ns.ids.slice().sort().join(',');
+          var sc = score(ns);
+          if(!next[key] || score(next[key])<sc) next[key] = ns;
+        });
+      });
+      var arr = Object.keys(next).map(function(x){return next[x];}).sort(function(a,b){ return score(b)-score(a); }).slice(0,40);
+      if(!arr.length) break;
+      arr.forEach(function(s){ var sc=score(s); if(sc>bestScore+1e-9){ best=s; bestScore=sc; } });
+      beam = arr;
+    }
+    return { steps:best.steps, cash:best.cash, shelf:best.shelf, eLeft:best.E, offersCount:offers.length };
+  }
+  //ENGINE-END
+
+  // ---------- UI ----------
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function money(n){ return n.toLocaleString('en-US',{style:'currency',currency:'USD'}); }
+
+  var S = {
+    cats:['Hair Care','Oral Care','Personal Care','Household'],
+    prices:{},
+    run:null,   // {i, spent, bal, used:[], steps:[], history:[], tasks:{}, msg:''}
+    plan:null
+  };
+
+  function cfgNow(){
+    var base = {
+      cats:S.cats.slice(), budget:num($('budget').value), ecb0:num($('ecb0').value), tax:num($('tax').value),
+      maxSteps:parseInt($('maxsteps').value,10)||5, clip:$('clip').checked, conservative:$('safe').checked,
+      prices:S.prices, used:[]
+    };
+    return base;
+  }
+
+  function save(){ try{ localStorage.setItem('cc2', JSON.stringify({cats:S.cats, prices:S.prices, run:S.run, f:{budget:$('budget').value,ecb0:$('ecb0').value,tax:$('tax').value,maxsteps:$('maxsteps').value,clip:$('clip').checked,safe:$('safe').checked}})); }catch(e){} }
+  function load(){
+    try{
+      var j = JSON.parse(localStorage.getItem('cc2')||'null'); if(!j) return;
+      if(Array.isArray(j.cats)) S.cats = j.cats.filter(function(c){return CATS.indexOf(c)>=0;});
+      if(j.prices && typeof j.prices==='object') S.prices = j.prices;
+      if(j.run && Array.isArray(j.run.steps)) S.run = j.run;
+      if(j.f){ $('budget').value=j.f.budget; $('ecb0').value=j.f.ecb0; $('tax').value=j.f.tax; $('maxsteps').value=j.f.maxsteps; $('clip').checked=!!j.f.clip; $('safe').checked=!!j.f.safe; }
+    }catch(e){}
+  }
+
+  function catCount(c){ return DEALS.filter(function(d){return d.cat===c && d.ecb>0;}).length + GROUPS.filter(function(g){return g.cat===c;}).length; }
+  function renderPills(){
+    $('catpills').innerHTML = CATS.map(function(c){
+      return '<button type="button" class="pill" data-cat="'+esc(c)+'" aria-pressed="'+(S.cats.indexOf(c)>=0)+'">'+esc(c)+'<small>'+catCount(c)+'</small></button>';
+    }).join('');
+  }
+
+  function stepCard(st, idx, opts){
+    var items = [], clip = [], card = false;
+    st.offers.forEach(function(o){ items = items.concat(o.items); clip = clip.concat(o.clip); if(o.card) card = true; });
+    var h = '<div class="step"><div class="step-h"><b>Transaction '+(idx+1)+'</b><span class="muted">Earns '+money(r2(st.earn))+' ExtraBucks</span></div><div class="step-b">';
+    h += items.map(function(it){ return '<div class="it"><span>'+it.qty+' × '+esc(it.name)+'</span><span>'+money(r2(it.price))+' ea.</span></div>'; }).join('');
+    if(clip.length) h += '<div class="muted"><b>Clip first:</b> '+clip.map(esc).join('; ')+'</div>';
+    st.offers.forEach(function(o){ if(o.flag) h += '<div class="alert">'+esc(o.flag)+'</div>'; });
+    h += '<div class="kv"><div><small>Use ExtraBucks</small><b>'+money(r2(st.apply))+'</b></div><div><small>You pay</small><b>'+money(r2(st.cash))+'</b></div><div><small>ExtraBucks after</small><b>'+money(r2(st.eAfter))+'</b></div></div>';
+    if(card) h += '<span class="chip">Scan your ExtraCare card for these prices</span>';
+    return h + '</div></div>';
+  }
+
+  function summary(p, cfg){
+    var h = '<div class="receipt"><div class="head">Roll summary</div><hr>';
+    h += '<div class="ln"><span>Transactions</span><span>'+p.steps.length+'</span></div>';
+    h += '<div class="ln"><span>Cash you pay, total</span><span class="big">'+money(r2(p.cash))+'</span></div>';
+    h += '<div class="ln"><span>Shelf value you leave with</span><span>'+money(r2(p.shelf))+'</span></div>';
+    h += '<div class="ln"><span>ExtraBucks left at the end</span><span>'+money(r2(p.eLeft))+'</span></div>';
+    if(p.steps.length){
+      h += '<hr><div class="ln"><span>Cash needed in transaction 1</span><span>'+money(r2(p.steps[0].cash))+'</span></div>';
+      h += '<div class="small">Worst case: if a reward never prints, stop. You will have paid '+money(r2(p.steps[0].cash))+' for transaction 1 and nothing more. Shelf value is the sale price of what you carry out, before coupons.</div>';
+    }
+    return h + '</div>';
+  }
+
+  function renderPlan(){
+    var cfg = cfgNow();
+    var p = planRoll(cfg); S.plan = p;
+    var priced = DEALS.filter(function(d){ return S.cats.indexOf(d.cat)>=0 && d.ecb>0 && ((S.prices[d.id]>0)||d.price>0); }).length;
+    var total = DEALS.filter(function(d){ return S.cats.indexOf(d.cat)>=0 && d.ecb>0; }).length;
+    var groups = GROUPS.filter(function(g){ return S.cats.indexOf(g.cat)>=0; }).length;
+    $('coverage').textContent = S.cats.length ? ('In these categories the ad shows '+(total+groups)+' ExtraBucks deals; '+(priced+groups)+' have a shelf price and can go into the plan. Add shelf prices on the All deals tab to include the rest.') : 'Pick at least one category.';
+    var h = '';
+    if(!S.cats.length){ h = '<div class="alert">Pick a category above to build a roll.</div>'; }
+    else if(!p.steps.length){ h = '<div class="alert bad">No roll fits '+money(cfg.budget)+' with these categories. Raise the cash limit, add categories, or add shelf prices in the All deals tab.</div>'; }
+    else {
+      h += summary(p, cfg);
+      h += '<div class="col">'+p.steps.map(function(st,i){ return stepCard(st,i); }).join('')+'</div>';
+      if(p.eLeft>0.005) h += '<div class="alert good">You finish with '+money(r2(p.eLeft))+' in ExtraBucks. Spend it on anything you need in a last trip, or keep it for next week. Check the expiry date.</div>';
+      h += '<div><button class="btn primary" id="startrun" type="button">Start in store</button></div>';
+    }
+    $('planout').innerHTML = h;
+  }
+
+  // ---------- coach ----------
+  function newRun(){
+    var cfg = cfgNow();
+    return { i:0, spent:0, bal:cfg.ecb0, used:[], steps:S.plan ? S.plan.steps : [], history:[], tasks:{}, msg:'', budget:cfg.budget, maxSteps:cfg.maxSteps, done:false };
+  }
+  function stepTasks(st, idx){
+    var clip = [], items = [], card = false;
+    st.offers.forEach(function(o){ clip = clip.concat(o.clip); items = items.concat(o.items); if(o.card) card = true; });
+    var t = [];
+    t.push({id:'t1', text:'Open the CVS app and have your ExtraCare card ready (scan it or enter your phone number at the register).'});
+    if(clip.length) t.push({id:'t2', text:'In the app, clip: '+clip.join('; ')+'.'});
+    items.forEach(function(it,k){ t.push({id:'t3'+k, text:'Pick up '+it.qty+' × '+it.name+'. The tag should read about '+money(r2(it.price))+' each.'}); });
+    if(st.apply>0.005) t.push({id:'t4', text:'At the register, scan your card first, then apply '+money(r2(st.apply))+' of ExtraBucks.'});
+    else t.push({id:'t4', text:'At the register, scan your card. You have no ExtraBucks to use yet.'});
+    t.push({id:'t5', text:'Expect to pay about '+money(r2(st.cash))+'. If the screen shows more than '+money(r2(st.cash+1))+', stop and ask the cashier before you pay.'});
+    t.push({id:'t6', text:'After paying, check the receipt or the app. Look for '+money(r2(st.earn))+' in new ExtraBucks.'});
+    return t;
+  }
+
+  function renderStore(){
+    var el = $('v-store'), r = S.run;
+    if(!r){
+      el.innerHTML = '<div class="card"><h2>Ready when you are</h2><p class="sub">Build a roll in the Roll plan tab, then press Start in store. I will walk you through one transaction at a time.</p><button class="btn primary" id="gotoplan" type="button">Build a roll</button></div>';
+      return;
+    }
+    if(r.done || r.i>=r.steps.length){
+      var shelf = r.history.reduce(function(a,h){return a+h.shelf;},0);
+      var h = '<div class="card"><h2>Roll finished</h2><div class="receipt"><div class="head">Your results</div><hr>';
+      h += '<div class="ln"><span>Transactions done</span><span>'+r.history.length+'</span></div>';
+      h += '<div class="ln"><span>Cash you paid</span><span class="big">'+money(r2(r.spent))+'</span></div>';
+      h += '<div class="ln"><span>Shelf value you got</span><span>'+money(r2(shelf))+'</span></div>';
+      h += '<div class="ln"><span>ExtraBucks balance</span><span>'+money(r2(r.bal))+'</span></div></div>';
+      if(r.msg) h += '<div class="alert">'+esc(r.msg)+'</div>';
+      h += '<div class="row"><button class="btn primary" id="newroll" type="button">Plan another roll</button><button class="btn" id="clearrun" type="button">Clear this roll</button></div></div>';
+      el.innerHTML = h; return;
+    }
+    var st = r.steps[r.i], tasks = stepTasks(st, r.i), allDone = tasks.every(function(t){ return r.tasks[r.i+':'+t.id]; });
+    var h2 = '<div class="card coach"><div class="eyebrow">Transaction '+(r.i+1)+' of '+r.steps.length+'</div>';
+    h2 += '<h2>'+esc(st.offers.map(function(o){return o.label;}).join(' + '))+'</h2>';
+    h2 += '<div class="kv"><div><small>Use ExtraBucks</small><b>'+money(r2(st.apply))+'</b></div><div><small>You pay</small><b>'+money(r2(st.cash))+'</b></div><div><small>You earn</small><b>'+money(r2(st.earn))+'</b></div></div>';
+    if(r.msg) h2 += '<div class="alert">'+esc(r.msg)+'</div>';
+    h2 += '<div>'+tasks.map(function(t){ var k=r.i+':'+t.id, on=!!r.tasks[k]; return '<label class="task'+(on?' done':'')+'" for="tk-'+k+'"><input type="checkbox" id="tk-'+k+'" data-task="'+k+'"'+(on?' checked':'')+'><span>'+esc(t.text)+'</span></label>'; }).join('')+'</div>';
+    h2 += '<div class="row"><label class="f" for="paid">I paid ($)<input id="paid" class="mono" inputmode="decimal" value="'+r2(st.cash).toFixed(2)+'"></label><label class="f" for="bal">ExtraBucks balance now ($)<input id="bal" class="mono" inputmode="decimal" value="'+r2(st.eAfter).toFixed(2)+'"></label></div>';
+    h2 += '<div class="row"><button class="btn primary" id="gotit" type="button"'+(allDone?'':' disabled')+'>Reward showed up. Next transaction</button><button class="btn danger" id="nogot" type="button"'+(allDone?'':' disabled')+'>Reward did not show up</button></div>';
+    h2 += '<p class="muted">Tick every box to unlock the buttons. When you press one, the rest of the plan is rebuilt from the cash you actually paid and the balance you actually have.</p>';
+    h2 += '<button class="link" id="stoprun" type="button">Stop the roll here</button></div>';
+    var rest = r.steps.slice(r.i+1);
+    if(rest.length) h2 += '<h3>Coming up</h3><div class="col">'+rest.map(function(s,k){ return stepCard(s, r.i+1+k); }).join('')+'</div>';
+    el.innerHTML = h2;
+  }
+
+  function advance(missing){
+    var r = S.run, st = r.steps[r.i];
+    var paid = num($('paid').value), bal = num($('bal').value);
+    if(missing && Math.abs(bal - r2(st.eAfter)) < 0.005) bal = Math.max(0, r2(st.eAfter - st.earn));
+    var ids = []; st.offers.forEach(function(o){ ids.push(o.id); });
+    r.history.push({shelf:st.shelf, ids:ids, paid:paid});
+    r.spent += paid; r.bal = bal; r.used = r.used.concat(ids);
+    var cfg = cfgNow();
+    cfg.ecb0 = bal; cfg.budget = Math.max(0, r.budget - r.spent); cfg.used = r.used; cfg.maxSteps = Math.max(0, r.maxSteps - r.history.length);
+    var p = cfg.maxSteps>0 ? planRoll(cfg) : {steps:[]};
+    r.steps = p.steps; r.i = 0; r.tasks = {};
+    if(missing) r.msg = 'The reward did not show up. Do not start another transaction yet. Take your receipt to the register or customer service today and ask about the missing ExtraBucks. The plan below is rebuilt from the balance you entered.';
+    else r.msg = '';
+    if(!r.steps.length){ r.done = true; if(!missing) r.msg = 'No more transactions fit your limit. Your remaining ExtraBucks can go toward anything you need.'; }
+    save(); renderStore();
+  }
+
+  // ---------- deals tab ----------
+  function dealText(d){
+    var t = (d.type==='buy' ? 'Buy '+d.n+', get $'+d.ecb+' ExtraBucks' : 'Spend $'+d.min+', get $'+d.ecb+' ExtraBucks');
+    if(d.ecb==null) t = 'ExtraBucks amount not shown in the ad list';
+    if(d.bogo) t += ' + buy 1 get 1 50% off';
+    if(d.mfr && d.mfr.v) t += ' + $'+d.mfr.v+(d.mfr.onQty?' off '+d.mfr.onQty:' off')+' digital manufacturer coupon';
+    if(d.store) t += ' + '+(d.store.note||'store coupon');
+    return t;
+  }
+  function renderDeals(){
+    var h = '';
+    CATS.forEach(function(c){
+      var ds = DEALS.filter(function(d){return d.cat===c;}), gs = GROUPS.filter(function(g){return g.cat===c;});
+      if(!ds.length && !gs.length) return;
+      h += '<div class="card"><h3>'+esc(c)+'</h3>';
+      gs.forEach(function(g){
+        h += '<div class="dealrow"><div class="top"><b>'+esc(g.label)+'</b><span class="chip ok">price from ad</span></div><div class="muted">'+g.items.map(function(i){return esc(i.name)+' '+money(i.price);}).join(' · ')+'</div></div>';
+      });
+      ds.forEach(function(d){
+        var p = S.prices[d.id]>0 ? S.prices[d.id] : d.price;
+        h += '<div class="dealrow"><div class="top"><span>'+esc(d.name)+'</span>';
+        if(d.ecb>0){
+          if(d.price>0) h += '<span class="chip ok">'+money(d.price)+' from ad</span>';
+          else h += '<span><label class="f" for="pr-'+d.id+'" style="display:inline-flex;flex-direction:row;align-items:center;gap:6px;flex:none">Shelf price $<input id="pr-'+d.id+'" data-price="'+d.id+'" inputmode="decimal" placeholder="enter" value="'+(S.prices[d.id]>0?S.prices[d.id]:'')+'"></label></span>';
+        } else h += '<span class="chip">no plan</span>';
+        h += '</div><div class="muted">'+esc(dealText(d))+(d.hint?' · '+esc(d.hint):'')+'</div>';
+        if(d.flag) h += '<div class="muted"><b>Heads up:</b> '+esc(d.flag)+'</div>';
+        h += '</div>';
+      });
+      h += '</div>';
+    });
+    $('dealslist').innerHTML = h;
+  }
+
+  // ---------- events ----------
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    var cat = t.closest && t.closest('[data-cat]');
+    if(cat){ var c = cat.getAttribute('data-cat'), i = S.cats.indexOf(c); if(i>=0) S.cats.splice(i,1); else S.cats.push(c); renderPills(); renderPlan(); save(); return; }
+    if(t.id==='startrun'){ S.run = newRun(); save(); show('store'); location.hash='store'; renderStore(); return; }
+    if(t.id==='gotit'){ advance(false); return; }
+    if(t.id==='nogot'){ advance(true); return; }
+    if(t.id==='stoprun'){ S.run.done = true; S.run.msg = 'You stopped the roll. Whatever ExtraBucks you have is still yours until it expires.'; save(); renderStore(); return; }
+    if(t.id==='clearrun'){ S.run = null; save(); renderStore(); return; }
+    if(t.id==='newroll' || t.id==='gotoplan'){ S.run = null; save(); show('plan'); location.hash='plan'; return; }
+  });
+  document.addEventListener('change', function(e){
+    var t = e.target;
+    if(t.getAttribute && t.getAttribute('data-task')){
+      S.run.tasks[t.getAttribute('data-task')] = t.checked; save();
+      var lab = t.closest('.task'); if(lab) lab.classList.toggle('done', t.checked);
+      var all = Array.prototype.every.call(document.querySelectorAll('input[data-task]'), function(x){ return x.checked; });
+      ['gotit','nogot'].forEach(function(id){ var b = $(id); if(b) b.disabled = !all; });
+      return;
+    }
+    if(t.getAttribute && t.getAttribute('data-price')){ var v = num(t.value); if(v>0) S.prices[t.getAttribute('data-price')] = v; else delete S.prices[t.getAttribute('data-price')]; save(); renderPlan(); return; }
+  });
+  ['budget','ecb0','tax'].forEach(function(id){ $(id).addEventListener('input', function(){ renderPlan(); save(); }); });
+  ['maxsteps','clip','safe'].forEach(function(id){ $(id).addEventListener('change', function(){ renderPlan(); save(); }); });
+
+  var TABS = ['plan','store','deals','notes'];
+  function show(name){
+    if(TABS.indexOf(name)<0) name = 'plan';
+    TABS.forEach(function(t){ $('v-'+t).hidden = (t!==name); });
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(b){ b.setAttribute('aria-selected', String(b.getAttribute('data-tab')===name)); });
+    if(name==='store') renderStore();
+    if(name==='deals') renderDeals();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(b){ b.addEventListener('click', function(){ location.hash = b.getAttribute('data-tab'); show(b.getAttribute('data-tab')); }); });
+  window.addEventListener('hashchange', function(){ show(location.hash.replace('#','')); });
+
+  // as-of banner
+  (function(){
+    var now = new Date(), end = new Date(AD.end+'T23:59:59'), el = $('asof');
+    if(now > end){ el.className = 'asof stale'; el.textContent = 'These deals ended on '+AD.end+'. Ask Claude to refresh them for the new week before you shop.'; }
+    else el.textContent = 'Deals for CVS ad week '+AD.label+' · read from CVS’s weekly ad for '+AD.store+'. Check prices on your shelf.';
+  })();
+
+  load();
+  renderPills();
+  renderPlan();
+  show(location.hash.replace('#',''));
+})();
+</script>
+</body>
+</html>
