@@ -17,7 +17,7 @@ tick-boxes, asks what they actually paid and their real ExtraBucks balance, and 
 - They may later want other stores (Walgreens, Target). Current scope is CVS only.
 
 ## Files
-- `index.html` - whole app: CSS, HTML, JS.
+- `index.html` - whole app: CSS, HTML, JS. Visual style is "Pressed Rose" (white page, deep rose #8C435A actions, powder pink and antique gold as decoration only, Fraunces headings, Source Sans 3 body). Keep it light-only.
 - `README.md` - short overview.
 - `tools/` - weekly refresh: `scrape-ad.mjs`, `convert.mjs`, `check-engine.mjs` (`npm run refresh`).
 - `.github/workflows/weekly-refresh.yml` - runs the refresh on GitHub every Sunday and opens a PR.
